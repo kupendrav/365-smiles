@@ -7,6 +7,7 @@ import FormData from 'form-data';
 import fs from 'fs';
 import path from 'path';
 
+
 const resend = new Resend(process.env.RESEND_API_KEY!);
 
 export async function POST(req: NextRequest) {
@@ -15,6 +16,7 @@ export async function POST(req: NextRequest) {
       const name = formData.get('name') as string;
       const email = formData.get('email') as string;
       const amount = formData.get('amount') as string;
+      const date = formData.get('date') as string;
       const refId = formData.get('refId') as string;
       const file = formData.get('file') as File | null;
   
@@ -46,6 +48,7 @@ export async function POST(req: NextRequest) {
         name,
         email,
         amount,
+        date,
         ref_id: refId,
         screenshot: screenshotUrl,
       });
