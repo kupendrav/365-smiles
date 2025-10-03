@@ -113,14 +113,14 @@ export default function Home() {
                 className="absolute mt-2 w-44 rounded-xl border border-white/10 bg-gray-900/95 shadow-lg overflow-hidden"
               >
                 <Link
-                  href="/admin"
+                  href="/admin/login"
                   className="block px-4 py-3 hover:bg-white/10 transition"
                   onClick={() => setMenuOpen(false)}
                 >
                   Admin Login
                 </Link>
                 <Link
-                  href="/donate"
+                  href="/calendar"
                   className="block px-4 py-3 hover:bg-white/10 transition"
                   onClick={() => setMenuOpen(false)}
                 >
@@ -139,8 +139,16 @@ export default function Home() {
 
           {/* Right: Logo */}
           <Link href="/" className="flex items-center gap-2 group">
-            <div className="h-8 w-8 rounded-lg bg-gradient-to-tr from-pink-500 to-rose-400 ring-2 ring-white/20 group-hover:rotate-6 transition" />
-            <span className="text-lg font-semibold tracking-wide">365 Smiles</span>
+            <div className="h-8 w-8 rounded-lg ring-2 ring-white/20 group-hover:rotate-6 transition overflow-hidden relative">
+              <Image
+                src="/logo.png"
+                alt="365 Smiles Logo"
+                fill
+                className="object-contain"
+                priority
+              />
+            </div>           
+             <span className="text-lg font-semibold tracking-wide">365 Smiles</span>
           </Link>
         </div>
       </header>
@@ -163,7 +171,7 @@ export default function Home() {
             transition={{ duration: 0.6 }}
             className="text-4xl md:text-6xl font-bold leading-tight"
           >
-            Donate birthdays. Create **smiles**. Feed lives. 
+            Donate birthdays. Create <b>smiles</b>. Feed lives. 
           </motion.h1>
           <motion.p
             initial={{ opacity: 0, y: 10 }}
@@ -197,53 +205,68 @@ export default function Home() {
 
       {/* Recent Donors */}
       <section
-        id="donors"
-        className="relative py-20 md:py-24 bg-gradient-to-b from-black to-gray-950"
-      >
-        <div className="mx-auto max-w-7xl px-4">
-          <div className="flex items-end justify-between mb-6">
-            <h2 className="text-2xl md:text-3xl font-semibold">🌟 Recent Donors</h2>
-            <Link href="/donate" className="text-pink-400 hover:text-pink-300">
-              Donate Now →
+  id="donors"
+  className="relative py-20 md:py-24 bg-gradient-to-b from-black to-gray-950"
+>
+  <div className="mx-auto max-w-7xl px-4">
+    <div className="flex items-end justify-between mb-6">
+      <h2 className="text-2xl md:text-3xl font-semibold">🌟 Recent Donors</h2>
+      <Link href="/donate" className="text-pink-400 hover:text-pink-300">
+        Donate Now →
+      </Link>
+    </div>
+    <div className="no-scrollbar flex gap-6 overflow-x-auto py-2 snap-x snap-mandatory">
+      {donors.slice(0, 3).map((donor, idx) => (
+        <motion.div
+          key={donor.id}
+          initial={{ opacity: 0, scale: 0.95 }}
+          whileInView={{ opacity: 1, scale: 1 }}
+          viewport={{ once: true, margin: "-10%" }}
+          transition={{ duration: 0.6, delay: idx * 0.1 }}
+          className="snap-start min-w-[420px] max-w-[420px] bg-gradient-to-r from-gray-800/70 to-gray-900/70 border border-white/10 p-6 rounded-2xl shadow-xl flex flex-col justify-between relative"
+        >
+          {/* Alternate card layout */}
+          <div className={`flex ${idx % 2 === 0 ? 'flex-row' : 'flex-row-reverse'} items-center gap-6`}>
+            <div className="flex-1">
+              <div className="flex items-center gap-2">
+                <p className="font-bold text-2xl text-pink-400">{donor.name || "Anonymous"}</p>
+                <span className="rounded-full bg-emerald-600/20 text-emerald-300 px-3 py-1 text-lg">
+                  ₹{donor.amount}
+                </span>
+              </div>
+              {donor.message && (
+                <p className="mt-4 text-base text-white/80 italic">"{donor.message}"</p>
+              )}
+            </div>
+            <div className="w-32 h-32 rounded-xl overflow-hidden bg-gray-700 shadow-lg">
+              {donor.image_url ? (
+                <Image
+                  src={donor.image_url}
+                  alt={donor.name ?? "Anonymous"}
+                  width={128}
+                  height={128}
+                  className="object-cover w-full h-full"
+                />
+              ) : (
+                <div className="h-full w-full bg-gray-700" />
+              )}
+            </div>
+          </div>
+          {/* Only show at bottom of 3rd card */}
+          {idx === 2 && (
+            <Link
+              href="/recentdonors"
+              className="absolute right-4 bottom-4 inline-block text-pink-400 hover:text-pink-300 font-medium transition"
+            >
+              View More →
             </Link>
-          </div>
+          )}
+        </motion.div>
+      ))}
+    </div>
+  </div>
+</section>
 
-          <div className="no-scrollbar flex gap-4 overflow-x-auto py-2 snap-x snap-mandatory">
-            {donors.map((donor, idx) => (
-              <motion.div
-                key={donor.id}
-                initial={{ opacity: 0, y: 18 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: "-10%" }}
-                transition={{ duration: 0.4, delay: idx * 0.03 }}
-                className="snap-start min-w-[280px] max-w-[280px] bg-gray-800/70 border border-white/10 p-4 rounded-xl shadow-md"
-              >
-                <div className="relative w-full h-44 rounded-lg overflow-hidden mb-3">
-                  {donor.image_url ? (
-                    <Image
-                      src={donor.image_url}
-                      alt={donor.name ?? "Anonymous"}
-                      fill
-                      className="object-cover"
-                    />
-                  ) : (
-                    <div className="h-full w-full bg-gray-700" />
-                  )}
-                </div>
-                <div className="flex items-center justify-between">
-                  <p className="font-semibold">{donor.name || "Anonymous"}</p>
-                  <span className="rounded-full bg-emerald-600/20 text-emerald-300 px-2 py-1 text-xs">
-                    ₹{donor.amount}
-                  </span>
-                </div>
-                {donor.message && (
-                  <p className="mt-2 text-sm text-white/80">{donor.message}</p>
-                )}
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
 
       {/* Causes: three fullscreen sections with snap scroll */}
       <section
