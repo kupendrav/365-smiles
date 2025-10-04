@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import { createSupabaseClient } from "@/lib/supabaseClient";
 import { motion, useScroll, useSpring, useTransform } from "framer-motion";
 
+
 type Donor = {
   id: number;
   name: string | null;
@@ -12,6 +13,8 @@ type Donor = {
   message: string | null;
   image_url: string | null;
 };
+
+
 
 const causes = [
   {
@@ -188,7 +191,7 @@ export default function Home() {
             className="mt-8 flex items-center gap-3"
           >
             <Link
-              href="/donate"
+              href="/calendar"
               className="rounded-full bg-gradient-to-r from-rose-500 to-pink-500 px-6 py-3 text-sm md:text-base font-medium hover:opacity-90 active:scale-95 transition"
             >
               Sponsor a Day
@@ -203,66 +206,65 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Recent Donors */}
-      <section
+     <section
   id="donors"
-  className="relative py-20 md:py-24 bg-gradient-to-b from-black to-gray-950"
+  className="relative py-20 md:py-24 bg-gradient-to-b from-black to-gray-950 min-h-[60vh]"
 >
-  <div className="mx-auto max-w-7xl px-4">
-    <div className="flex items-end justify-between mb-6">
+  <div className="max-w-6xl px-4 mx-auto relative">
+    <div className="flex items-center justify-between mb-8">
       <h2 className="text-2xl md:text-3xl font-semibold">🌟 Recent Donors</h2>
-      <Link href="/donate" className="text-pink-400 hover:text-pink-300">
+      <Link href="/donate" className="text-pink-400 hover:text-pink-300 font-medium">
         Donate Now →
       </Link>
     </div>
-    <div className="no-scrollbar flex gap-6 overflow-x-auto py-2 snap-x snap-mandatory">
-      {donors.slice(0, 3).map((donor, idx) => (
-        <motion.div
+
+    <div className="flex flex-wrap justify-center gap-7">
+      {donors.map((donor, idx) => (
+        <div
           key={donor.id}
-          initial={{ opacity: 0, scale: 0.95 }}
-          whileInView={{ opacity: 1, scale: 1 }}
-          viewport={{ once: true, margin: "-10%" }}
-          transition={{ duration: 0.6, delay: idx * 0.1 }}
-          className="snap-start min-w-[420px] max-w-[420px] bg-gradient-to-r from-gray-800/70 to-gray-900/70 border border-white/10 p-6 rounded-2xl shadow-xl flex flex-col justify-between relative"
+          className={`
+            w-full sm:w-96 max-w-[420px] border border-white/10 bg-gray-900/80 p-6 rounded-2xl shadow-lg 
+            flex items-center ${idx % 2 === 1 ? "flex-row-reverse" : "flex-row"} gap-6
+          `}
         >
-          {/* Alternate card layout */}
-          <div className={`flex ${idx % 2 === 0 ? 'flex-row' : 'flex-row-reverse'} items-center gap-6`}>
-            <div className="flex-1">
-              <div className="flex items-center gap-2">
-                <p className="font-bold text-2xl text-pink-400">{donor.name || "Anonymous"}</p>
-                <span className="rounded-full bg-emerald-600/20 text-emerald-300 px-3 py-1 text-lg">
-                  ₹{donor.amount}
-                </span>
-              </div>
-              {donor.message && (
-                <p className="mt-4 text-base text-white/80 italic">"{donor.message}"</p>
-              )}
+          <div className="flex-1 overflow-hidden">
+            <div className="flex items-center gap-2 flex-wrap">
+              <p className="font-bold text-xl text-pink-400 truncate">{donor.name || "Anonymous"}</p>
+              <span className="rounded-full bg-emerald-600/40 text-emerald-300 px-4 py-1 text-base">
+                ₹{donor.amount}
+              </span>
             </div>
-            <div className="w-32 h-32 rounded-xl overflow-hidden bg-gray-700 shadow-lg">
-              {donor.image_url ? (
-                <Image
-                  src={donor.image_url}
-                  alt={donor.name ?? "Anonymous"}
-                  width={128}
-                  height={128}
-                  className="object-cover w-full h-full"
-                />
-              ) : (
-                <div className="h-full w-full bg-gray-700" />
-              )}
-            </div>
+            {donor.message && (
+              <p className="mt-4 text-base text-gray-300 italic break-words line-clamp-3">
+                "{donor.message}"
+              </p>
+            )}
           </div>
-          {/* Only show at bottom of 3rd card */}
-          {idx === 2 && (
-            <Link
-              href="/recentdonors"
-              className="absolute right-4 bottom-4 inline-block text-pink-400 hover:text-pink-300 font-medium transition"
-            >
-              View More →
-            </Link>
-          )}
-        </motion.div>
+          <div className="flex-shrink-0 w-24 h-24 rounded-xl overflow-hidden bg-gray-700 shadow">
+            {donor.image_url ? (
+              <Image
+                src={donor.image_url}
+                alt={donor.name ?? "Anonymous"}
+                width={96}
+                height={96}
+                className="object-cover w-full h-full"
+              />
+            ) : (
+              <div className="h-full w-full bg-gray-700" />
+            )}
+          </div>
+        </div>
       ))}
+    </div>
+
+    {/* View More link - bottom left */}
+    <div className="absolute right-0 bottom-4">
+      <Link
+        href="/recentdonars"
+        className="inline-block text-pink-500 hover:text-pink-600 font-bold transition"
+      >
+        View More →
+      </Link>
     </div>
   </div>
 </section>
