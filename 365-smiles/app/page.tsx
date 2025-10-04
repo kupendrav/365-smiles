@@ -16,29 +16,6 @@ type Donor = {
 
 
 
-const causes = [
-  {
-    title: "🎓 Education",
-    description:
-      "Books, tuition, devices, and mentoring that unlock learning pathways for children and youth.",
-    href: "/donate/education",
-    bg: "from-blue-900 via-blue-700 to-cyan-700",
-  },
-  {
-    title: "🍽️ Daily Needs",
-    description:
-      "Nutritious meals and essentials for orphans, the elderly, and differently-abled individuals.",
-    href: "/donate/daily-needs",
-    bg: "from-amber-900 via-amber-700 to-yellow-700",
-  },
-  {
-    title: "💊 Medicine Support",
-    description:
-      "Medical checkups, medicines, assistive devices, and critical healthcare support.",
-    href: "/donate/medicine-support",
-    bg: "from-green-900 via-emerald-700 to-teal-700",
-  },
-];
 
 export default function Home() {
   const [donors, setDonors] = useState<Donor[]>([]);
@@ -83,6 +60,22 @@ export default function Home() {
 
   // Map rotation on scroll
   const rotate = useTransform(scrollYProgress, [0, 1], [0, 360]);
+
+  // Controls play/pause for each video
+  const [playing, setPlaying] = useState([false, false, false]);
+  const videoRefs = [useRef<HTMLVideoElement>(null), useRef<HTMLVideoElement>(null), useRef<HTMLVideoElement>(null)];
+
+  // Handles play/pause for a video
+  function handlePlayPause(idx: number) {
+    const refs = videoRefs[idx].current;
+    if (!refs) return;
+    if (playing[idx]) {
+      refs.pause();
+    } else {
+      refs.play();
+    }
+    setPlaying((prev) => prev.map((p, i) => (i === idx ? !p : p)));
+  }
 
   return (
     <div className="relative min-h-screen w-full bg-gradient-to-b from-gray-950 via-gray-900 to-black text-white overflow-x-hidden">
@@ -269,82 +262,149 @@ export default function Home() {
   </div>
 </section>
 
-
+      
       {/* Causes: three fullscreen sections with snap scroll */}
       <section
-        id="causes"
-        className="h-[300svh] snap-y snap-mandatory overflow-y-scroll no-scrollbar"
-      >
-        {causes.map((c, i) => (
-          <div
-            key={c.title}
-            className="snap-start h-[100svh] relative flex items-center"
-          >
-            <div
-              className={`absolute inset-0 bg-gradient-to-br ${c.bg} opacity-20`}
-            />
-            <div className="mx-auto max-w-6xl px-6 grid md:grid-cols-2 gap-8">
-              <motion.div
-                initial={{ opacity: 0, x: -24 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                viewport={{ once: true, margin: "-10%" }}
-                transition={{ duration: 0.5 }}
-              >
-                <h3 className="text-3xl md:text-5xl font-bold">{c.title}</h3>
-                <p className="mt-4 text-white/85 text-lg">{c.description}</p>
-                <ul className="mt-6 space-y-2 text-white/85">
-                  {i === 0 && (
-                    <>
-                      <li>• Scholarships and exam fees support continuity of learning.</li>
-                      <li>• Community libraries and after-school programs.</li>
-                      <li>• Devices and data packs for digital access.</li>
-                    </>
-                  )}
-                  {i === 1 && (
-                    <>
-                      <li>• Daily hot meals and ration kits.</li>
-                      <li>• Hygiene packs and seasonal clothing.</li>
-                      <li>• Nutritional supplements for seniors.</li>
-                    </>
-                  )}
-                  {i === 2 && (
-                    <>
-                      <li>• Doctor camps and diagnostics.</li>
-                      <li>• Long-term medicines and assistive care.</li>
-                      <li>• Emergency support and referrals.</li>
-                    </>
-                  )}
-                </ul>
-                <div className="mt-8 flex gap-3">
-                  <Link
-                    href={c.href}
-                    className="rounded-full bg-white text-black px-6 py-3 hover:bg-gray-200 active:scale-95 transition"
-                  >
-                    Donate to {c.title}
-                  </Link>
-                  <Link
-                    href="/about#impact"
-                    className="rounded-full border border-white/30 px-6 py-3 hover:bg-white/10 active:scale-95 transition"
-                  >
-                    See Impact
-                  </Link>
-                </div>
-              </motion.div>
-              <motion.div
-                initial={{ opacity: 0, x: 24 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                viewport={{ once: true, margin: "-10%" }}
-                transition={{ duration: 0.5 }}
-                className="hidden md:block"
-              >
-                <div className="h-[60vh] rounded-2xl bg-gradient-to-tr from-white/10 to-white/5 border border-white/10 shadow-inner flex items-center justify-center">
-                  <span className="text-white/70">Impact visuals area</span>
-                </div>
-              </motion.div>
-            </div>
+      id="causes"
+      className="py-20 md:py-24 bg-gradient-to-b from-black to-gray-950"
+    >
+      <div className="mx-auto max-w-6xl px-6 grid md:grid-cols-2 gap-12 items-center">
+        {/* Education */}
+        <div>
+          <h3 className="text-3xl md:text-5xl font-bold">🎓 Education</h3>
+          <p className="mt-4 text-white/85 text-lg">
+            Books, tuition, devices, and mentoring that unlock learning pathways for children and youth.
+          </p>
+          <ul className="mt-6 space-y-2 text-white/85">
+            <li>• Scholarships and exam fees support continuity of learning.</li>
+            <li>• Community libraries and after-school programs.</li>
+            <li>• Devices and data packs for digital access.</li>
+          </ul>
+          <div className="mt-8 flex gap-3">
+            <Link
+              href="/donate/education"
+              className="rounded-full bg-white text-black px-6 py-3 hover:bg-gray-200 transition"
+            >
+              Donate to Education
+            </Link>
+            <button
+              type="button"
+              className="rounded-full border border-white/30 px-6 py-3 hover:bg-white/10 transition"
+              onClick={() => {
+                const video = document.getElementById("video-education") as HTMLVideoElement;
+                if (video) video.paused ? video.play() : video.pause();
+              }}
+            >
+              See Impact
+            </button>
           </div>
-        ))}
-      </section>
+        </div>
+        <div className="flex items-center justify-center">
+          <div className="h-[60vh] w-full max-w-md rounded-2xl bg-gradient-to-tr from-white/10 to-white/5 border border-white/10 shadow-inner flex items-center justify-center overflow-hidden">
+            <video
+              id="video-education"
+              src="/a.mp4"
+              className="w-full h-full object-cover rounded-2xl"
+              loop
+              controls={false}
+              autoPlay={false}
+              muted
+              style={{ background: "black" }}
+            />
+          </div>
+        </div>
+
+        {/* Daily Needs */}
+        <div>
+          <h3 className="text-3xl md:text-5xl font-bold">🍽️ Daily Needs</h3>
+          <p className="mt-4 text-white/85 text-lg">
+            Nutritious meals and essentials for orphans, the elderly, and differently-abled individuals.
+          </p>
+          <ul className="mt-6 space-y-2 text-white/85">
+            <li>• Daily hot meals and ration kits.</li>
+            <li>• Hygiene packs and seasonal clothing.</li>
+            <li>• Nutritional supplements for seniors.</li>
+          </ul>
+          <div className="mt-8 flex gap-3">
+            <Link
+              href="/donate/daily-needs"
+              className="rounded-full bg-white text-black px-6 py-3 hover:bg-gray-200 transition"
+            >
+              Donate to Daily Needs
+            </Link>
+            <button
+              type="button"
+              className="rounded-full border border-white/30 px-6 py-3 hover:bg-white/10 transition"
+              onClick={() => {
+                const video = document.getElementById("video-daily") as HTMLVideoElement;
+                if (video) video.paused ? video.play() : video.pause();
+              }}
+            >
+              See Impact
+            </button>
+          </div>
+        </div>
+        <div className="flex items-center justify-center">
+          <div className="h-[60vh] w-full max-w-md rounded-2xl bg-gradient-to-tr from-white/10 to-white/5 border border-white/10 shadow-inner flex items-center justify-center overflow-hidden">
+            <video
+              id="video-daily"
+              src="/b.mp4"
+              className="w-full h-full object-cover rounded-2xl"
+              loop
+              controls={false}
+              autoPlay={false}
+              muted
+              style={{ background: "black" }}
+            />
+          </div>
+        </div>
+
+        {/* Medicine Support */}
+        <div>
+          <h3 className="text-3xl md:text-5xl font-bold">💊 Medicine Support</h3>
+          <p className="mt-4 text-white/85 text-lg">
+            Medical checkups, medicines, assistive devices, and critical healthcare support.
+          </p>
+          <ul className="mt-6 space-y-2 text-white/85">
+            <li>• Doctor camps and diagnostics.</li>
+            <li>• Long-term medicines and assistive care.</li>
+            <li>• Emergency support and referrals.</li>
+          </ul>
+          <div className="mt-8 flex gap-3">
+            <Link
+              href="/donate/medicine-support"
+              className="rounded-full bg-white text-black px-6 py-3 hover:bg-gray-200 transition"
+            >
+              Donate to Medicine Support
+            </Link>
+            <button
+              type="button"
+              className="rounded-full border border-white/30 px-6 py-3 hover:bg-white/10 transition"
+              onClick={() => {
+                const video = document.getElementById("video-medicine") as HTMLVideoElement;
+                if (video) video.paused ? video.play() : video.pause();
+              }}
+            >
+              See Impact
+            </button>
+          </div>
+        </div>
+        <div className="flex items-center justify-center">
+          <div className="h-[60vh] w-full max-w-md rounded-2xl bg-gradient-to-tr from-white/10 to-white/5 border border-white/10 shadow-inner flex items-center justify-center overflow-hidden">
+            <video
+              id="video-medicine"
+              src="/c.mp4"
+              className="w-full h-full object-cover rounded-2xl"
+              loop
+              controls={false}
+              autoPlay={false}
+              muted
+              style={{ background: "black" }}
+            />
+          </div>
+        </div>
+      </div>
+    </section>
 
       {/* What is 365-Smiles? */}
       <section id="about" className="py-20 md:py-28">
