@@ -211,42 +211,66 @@ export default function Home() {
       </Link>
     </div>
 
-    <div className="flex flex-wrap justify-center gap-7">
+        <div className="flex flex-wrap justify-center gap-8">
       {donors.map((donor, idx) => (
-        <div
+        <motion.div
           key={donor.id}
+          initial={{ opacity: 0, y: 40, scale: 0.95 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          transition={{
+            duration: 0.7,
+            delay: idx * 0.08,
+            type: "spring",
+            stiffness: 80,
+            damping: 18,
+          }}
+          whileHover={{
+            scale: 1.04,
+            boxShadow: "0 0 0 4px #ec4899, 0 8px 32px 0 #ec489980",
+            borderColor: "#ec4899",
+          }}
           className={`
-            w-full sm:w-96 max-w-[420px] border border-white/10 bg-gray-900/80 p-6 rounded-2xl shadow-lg 
+            w-full sm:w-96 max-w-[420px] border-2 border-pink-500/30 bg-gradient-to-br from-gray-900/90 to-pink-900/10 p-7 rounded-2xl shadow-xl
             flex items-center ${idx % 2 === 1 ? "flex-row-reverse" : "flex-row"} gap-6
+            transition-all duration-300
+            relative overflow-hidden
           `}
         >
-          <div className="flex-1 overflow-hidden">
+          {/* Glowing border effect */}
+          <div className="absolute inset-0 pointer-events-none rounded-2xl border-2 border-pink-500/20 blur-[2px] z-0" />
+    
+          <div className="flex-1 z-10">
             <div className="flex items-center gap-2 flex-wrap">
-              <p className="font-bold text-xl text-pink-400 truncate">{donor.name || "Anonymous"}</p>
-              <span className="rounded-full bg-emerald-600/40 text-emerald-300 px-4 py-1 text-base">
+              <p className="font-bold text-xl text-pink-400 truncate drop-shadow">
+                {donor.name || "Anonymous"}
+              </p>
+              <span className="rounded-full bg-emerald-600/30 text-emerald-200 px-4 py-1 text-base shadow">
                 ₹{donor.amount}
               </span>
             </div>
             {donor.message && (
-              <p className="mt-4 text-base text-gray-300 italic break-words line-clamp-3">
+              <p className="mt-4 text-base text-white/80 italic break-words line-clamp-3">
                 "{donor.message}"
               </p>
             )}
           </div>
-          <div className="flex-shrink-0 w-24 h-24 rounded-xl overflow-hidden bg-gray-700 shadow">
+          <div className="flex-shrink-0 w-24 h-24 rounded-xl overflow-hidden bg-gray-700 shadow-lg ring-2 ring-pink-500/30 z-10">
             {donor.image_url ? (
               <Image
                 src={donor.image_url}
                 alt={donor.name ?? "Anonymous"}
                 width={96}
                 height={96}
-                className="object-cover w-full h-full"
+                className="object-cover w-full h-full transition-transform duration-300 hover:scale-105"
               />
             ) : (
-              <div className="h-full w-full bg-gray-700" />
+              <div className="h-full w-full bg-gray-700 flex items-center justify-center text-white/40 text-2xl">
+                ?
+              </div>
             )}
           </div>
-        </div>
+         
+        </motion.div>
       ))}
     </div>
 
@@ -432,22 +456,18 @@ export default function Home() {
               </div>
             </div>
           </div>
-          <div className="relative h-[46vh] md:h-[56vh]">
-            <motion.div
-              style={{ rotate }}
-              className="absolute inset-0 flex items-center justify-center"
-            >
-              <div className="h-64 w-64 md:h-80 md:w-80 rounded-full border-2 border-white/15 flex items-center justify-center">
-                <div className="h-40 w-40 md:h-56 md:w-56 relative">
-                  <Image
-                    src="/india.svg"
-                    alt="India map"
-                    fill
-                    className="object-contain invert opacity-90"
-                  />
-                </div>
-              </div>
-            </motion.div>
+                    <div className="relative h-[46vh] md:h-[56vh] flex items-center justify-center">
+            <div className="h-64 w-64 md:h-80 md:w-80 rounded-full border-2 border-white/15 flex items-center justify-center overflow-hidden bg-black">
+              <video
+                src="/india.mp4"
+                className="h-full w-full object-cover rounded-full"
+                autoPlay
+                muted
+                loop
+                playsInline
+                style={{ background: "black" }}
+              />
+            </div>
           </div>
         </div>
       </section>
