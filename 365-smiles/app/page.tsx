@@ -134,7 +134,7 @@ export default function Home() {
           </div>
 
           {/* Right: Logo */}
-          <Link href="/" className="flex items-center gap-2 group">
+          <Link href="/#about" className="flex items-center gap-2 group">
             <div className="h-8 w-8 rounded-lg ring-2 ring-white/20 group-hover:rotate-6 transition overflow-hidden relative">
               <Image
                 src="/logo.png"
@@ -205,7 +205,7 @@ export default function Home() {
 >
   <div className="max-w-6xl px-4 mx-auto relative">
     <div className="flex items-center justify-between mb-8">
-      <h2 className="text-2xl md:text-3xl font-semibold">🌟 Recent Donors</h2>
+      <h2 className="text-8xl md:text-3xl font-semibold">⚚ Recent Donors</h2>
       <Link href="/donate" className="text-pink-400 hover:text-pink-300 font-medium">
         Donate Now →
       </Link>
@@ -292,6 +292,10 @@ export default function Home() {
       id="causes"
       className="py-20 md:py-24 bg-gradient-to-b from-black to-gray-950"
     >
+            <h2 className="text-5xl md:text-6xl font-extrabold text-center mb-12 text-pink-500 drop-shadow-lg">
+        ⚚ Impact of 365-Smiles ⚚
+
+      </h2>
       <div className="mx-auto max-w-6xl px-6 grid md:grid-cols-2 gap-12 items-center">
         {/* Education */}
         <div>
