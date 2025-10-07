@@ -212,67 +212,66 @@ export default function Home() {
     </div>
 
         <div className="flex flex-wrap justify-center gap-8">
-      {donors.map((donor, idx) => (
-        <motion.div
-          key={donor.id}
-          initial={{ opacity: 0, y: 40, scale: 0.95 }}
-          animate={{ opacity: 1, y: 0, scale: 1 }}
-          transition={{
-            duration: 0.7,
-            delay: idx * 0.08,
-            type: "spring",
-            stiffness: 80,
-            damping: 18,
-          }}
-          whileHover={{
-            scale: 1.04,
-            boxShadow: "0 0 0 4px #ec4899, 0 8px 32px 0 #ec489980",
-            borderColor: "#ec4899",
-          }}
-          className={`
-            w-full sm:w-96 max-w-[420px] border-2 border-pink-500/30 bg-gradient-to-br from-gray-900/90 to-pink-900/10 p-7 rounded-2xl shadow-xl
-            flex items-center ${idx % 2 === 1 ? "flex-row-reverse" : "flex-row"} gap-6
-            transition-all duration-300
-            relative overflow-hidden
-          `}
-        >
-          {/* Glowing border effect */}
-          <div className="absolute inset-0 pointer-events-none rounded-2xl border-2 border-pink-500/20 blur-[2px] z-0" />
-    
-          <div className="flex-1 z-10">
-            <div className="flex items-center gap-2 flex-wrap">
-              <p className="font-bold text-xl text-pink-400 truncate drop-shadow">
-                {donor.name || "Anonymous"}
-              </p>
-              <span className="rounded-full bg-emerald-600/30 text-emerald-200 px-4 py-1 text-base shadow">
-                ₹{donor.amount}
-              </span>
-            </div>
-            {donor.message && (
-              <p className="mt-4 text-base text-white/80 italic break-words line-clamp-3">
-                "{donor.message}"
-              </p>
-            )}
+  {donors.slice(0, 4).map((donor, idx) => (
+    <motion.div
+      key={donor.id}
+      initial={{ opacity: 0, y: 40, scale: 0.95 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      transition={{
+        duration: 0.7,
+        delay: idx * 0.08,
+        type: "spring",
+        stiffness: 80,
+        damping: 18,
+      }}
+      whileHover={{
+        scale: 1.04,
+        boxShadow: "0 0 0 4px #ec4899, 0 8px 32px 0 #ec489980",
+        borderColor: "#ec4899",
+      }}
+      className={`
+        w-full sm:w-96 max-w-[420px] border-2 border-pink-500/30 bg-gradient-to-br from-gray-900/90 to-pink-900/10 p-7 rounded-2xl shadow-xl
+        flex items-center ${idx % 2 === 1 ? "flex-row-reverse" : "flex-row"} gap-6
+        transition-all duration-300
+        relative overflow-hidden
+      `}
+    >
+      {/* Glowing border effect */}
+      <div className="absolute inset-0 pointer-events-none rounded-2xl border-2 border-pink-500/20 blur-[2px] z-0" />
+
+      <div className="flex-1 z-10">
+        <div className="flex items-center gap-2 flex-wrap">
+          <p className="font-bold text-xl text-pink-400 truncate drop-shadow">
+            {donor.name || "Anonymous"}
+          </p>
+          <span className="rounded-full bg-emerald-600/30 text-emerald-200 px-4 py-1 text-base shadow">
+            ₹{donor.amount}
+          </span>
+        </div>
+        {donor.message && (
+          <p className="mt-4 text-base text-white/80 italic break-words line-clamp-3">
+            "{donor.message}"
+          </p>
+        )}
+      </div>
+      <div className="flex-shrink-0 w-24 h-24 rounded-xl overflow-hidden bg-gray-700 shadow-lg ring-2 ring-pink-500/30 z-10">
+        {donor.image_url ? (
+          <Image
+            src={donor.image_url}
+            alt={donor.name ?? "Anonymous"}
+            width={96}
+            height={96}
+            className="object-cover w-full h-full transition-transform duration-300 hover:scale-105"
+          />
+        ) : (
+          <div className="h-full w-full bg-gray-700 flex items-center justify-center text-white/40 text-2xl">
+            ?
           </div>
-          <div className="flex-shrink-0 w-24 h-24 rounded-xl overflow-hidden bg-gray-700 shadow-lg ring-2 ring-pink-500/30 z-10">
-            {donor.image_url ? (
-              <Image
-                src={donor.image_url}
-                alt={donor.name ?? "Anonymous"}
-                width={96}
-                height={96}
-                className="object-cover w-full h-full transition-transform duration-300 hover:scale-105"
-              />
-            ) : (
-              <div className="h-full w-full bg-gray-700 flex items-center justify-center text-white/40 text-2xl">
-                ?
-              </div>
-            )}
-          </div>
-         
-        </motion.div>
-      ))}
-    </div>
+        )}
+      </div>
+    </motion.div>
+  ))}
+</div>
 
     {/* View More link - bottom left */}
     <div className="absolute right-0 bottom-4">
@@ -525,17 +524,17 @@ export default function Home() {
           <div>
             <h4 className="font-semibold text-white/90">Links</h4>
             <ul className="mt-2 space-y-2 text-white/80">
-              <li><Link href="/donate" className="hover:text-white">Donate</Link></li>
-              <li><Link href="/about" className="hover:text-white">About</Link></li>
-              <li><Link href="/impact" className="hover:text-white">Impact</Link></li>
+              <li><Link href="/calendar" className="hover:text-white">Donate</Link></li>
+              <li><Link href="#about" className="hover:text-white">About</Link></li>
+              <li><Link href="#impact" className="hover:text-white">Impact</Link></li>
             </ul>
           </div>
           <div>
             <h4 className="font-semibold text-white/90">Contact</h4>
             <ul className="mt-2 space-y-2 text-white/80">
-              <li><a href="mailto:hello@365smiles.org" className="hover:text-white">hello@365smiles.org</a></li>
-              <li><a href="tel:+919999999999" className="hover:text-white">+91 99999 99999</a></li>
-              <li><a href="https://maps.app.goo.gl/" target="_blank" className="hover:text-white" rel="noreferrer">Bangalore, India</a></li>
+              <li><a href="mailto:hello@365smiles.org" className="hover:text-white">365smilestrust@gmail.com</a></li>
+              <li><a href="tel:+919740221999" className="hover:text-white">+91 9740221999</a></li>
+              <li><a href="https://maps.app.goo.gl/BXkaJ1rM88RF6as79" target="_blank" className="hover:text-white" rel="noreferrer">Bangalore, India</a></li>
             </ul>
           </div>
           <div>
