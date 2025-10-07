@@ -31,9 +31,9 @@ export default function RecentDonors() {
 
   return (
     <main className="min-h-screen w-full bg-gradient-to-b from-black to-gray-950 px-4 py-14">
-      <h1 className="text-3xl md:text-4xl font-bold text-center mb-12 text-pink-500">
-        All Recent Donors
-      </h1>
+      <h1 className="text-4xl md:text-5xl font-extrabold text-center mb-12 text-pink-500 drop-shadow-lg">
+  ⚚ Our Divine Donors ⚚
+</h1>
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-10">
         {donors.map((donor, idx) => (
           <motion.div
