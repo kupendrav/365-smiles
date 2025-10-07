@@ -41,7 +41,7 @@ export default function EducationDonatePage() {
       setSubmitting(false);
       return;
     }
-    const screenshotUrl = supabase.storage.from("donation-screenshots").getPublicUrl(uploadData.path).publicUrl;
+    const screenshotUrl = supabase.storage.from("donation-screenshots").getPublicUrl(uploadData.path).data.publicUrl;
 
     // Insert donation record into Supabase
     const { error: insertError } = await supabase
@@ -51,7 +51,6 @@ export default function EducationDonatePage() {
         amount: Number(amount),
         message: message.trim() || null,
         image_url: screenshotUrl,
-        cause: "education",
       });
 
     if (insertError) {
@@ -61,7 +60,17 @@ export default function EducationDonatePage() {
     }
 
     // Call API to generate and send certificate (placeholder)
-    // await fetch('/api/sendCertificate', { method: 'POST', body: JSON.stringify(...) });
+     await fetch('/api/submit-donation', { 
+       method: 'POST', 
+       headers: { 'Content-Type': 'application/json' },
+       body: JSON.stringify({
+         name: name.trim(),
+         amount: Number(amount),
+         message: message.trim() || null,
+         image_url: screenshotUrl,
+         cause: "education"
+       })
+     });
 
     setSubmitting(false);
     router.push("/thank-you");
@@ -112,7 +121,7 @@ export default function EducationDonatePage() {
                 onChange={(e) => setName(e.target.value)}
                 required
                 disabled={submitting}
-                className="w-full rounded border border-gray-600 px-3 py-2 text-black"
+                className="w-full rounded border border-gray-600 px-3 py-2 text-white"
               />
             </label>
 
@@ -125,7 +134,7 @@ export default function EducationDonatePage() {
                 onChange={(e) => setAmount(e.target.value)}
                 required
                 disabled={submitting}
-                className="w-full rounded border border-gray-600 px-3 py-2 text-black"
+                className="w-full rounded border border-gray-600 px-3 py-2 text-white"
               />
             </label>
 
@@ -136,7 +145,7 @@ export default function EducationDonatePage() {
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
                 disabled={submitting}
-                className="w-full rounded border border-gray-600 px-3 py-2 text-black"
+                className="w-full rounded border border-gray-600 px-3 py-2 text-white"
               />
             </label>
 
