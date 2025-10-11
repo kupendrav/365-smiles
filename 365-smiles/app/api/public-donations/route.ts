@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
-import { PDFDocument, rgb } from "pdf-lib";
+import { PDFDocument, rgb ,degrees,cmyk} from "pdf-lib";
 import fontkit from "@pdf-lib/fontkit";
 import { Resend } from "resend";
 import fs from "fs/promises";
@@ -13,7 +13,7 @@ const resend = new Resend(process.env.RESEND_API_KEY!);
 // Paths and text placement — adjust NAME_COORDS to your template
 const CERT_PATH = path.join(process.cwd(), "public", "certi.pdf");
 const FONT_PATH = path.join(process.cwd(), "public", "fonts", "NotoSans-Regular.ttf");
-const NAME_COORDS = { x: 100, y: 265, size: 40 };
+const NAME_COORDS = { x: 100, y: 285, size: 40 };
 
 type ParsedForm = {
   name: string;
@@ -54,15 +54,17 @@ async function generateCertificateFromTemplate(donorName: string): Promise<Uint8
   // Register fontkit and embed a Unicode-capable font (supports ₹ and multilingual names)
   pdfDoc.registerFontkit(fontkit);
   const fontBytes = await fs.readFile(FONT_PATH);
-  const customFont = await pdfDoc.embedFont(fontBytes, { subset: true });
+  const customFont = await pdfDoc.embedFont(fontBytes); // ← remove { subset: true }
 
-  const page = pdfDoc.getPages()[0];
-  page.drawText(donorName, {
+  const safeName = donorName.replace(/\s+/g, " ").trim();
+  const gold = rgb(0.831, 0.686, 0.215);
+  const [page] = pdfDoc.getPages();
+  page.drawText(safeName, {
     x: NAME_COORDS.x,
     y: NAME_COORDS.y,
     size: NAME_COORDS.size,
     font: customFont,
-    color: rgb(212 / 255, 175 / 255, 55 / 255)
+    color: gold
   });
 
   return pdfDoc.save();
