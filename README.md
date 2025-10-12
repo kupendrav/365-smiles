@@ -1,12 +1,3 @@
-<img src="https://r2cdn.perplexity.ai/pplx-full-logo-primary-dark%402x.png" style="height:64px;margin-right:32px"/>
-
-# generate code -  a brief detail explaining of the project and pages included and there uses and how can users can download the project from github file and packages installed till now
-
-for readme.md file
-
-Below is a clear, copy‑ready README.md you can paste into your repo. It summarizes the project, key pages and routes, setup, environment, scripts, and the packages used so far.
-
-README.md
 
 # 365 Smiles – Donation Platform (Next.js)
 
