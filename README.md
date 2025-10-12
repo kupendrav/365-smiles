@@ -1,6 +1,10 @@
 
 # 365 Smiles – Donation Platform (Next.js)
 
+<p align="center">
+  <img src="365-smiles/public/logo.png" alt="365 Smiles Logo" />
+</p>
+
 A modern, full‑stack donation platform for 365 Smiles Foundation built with Next.js App Router. Donors can sponsor a specific date, upload UPI proof, and automatically receive a personalized certificate by email. Admins can verify donations, view summaries, log donations manually, and explore nearby NGOs/charities.
 
 ## Features
