@@ -3,7 +3,12 @@ import { supabase } from '@/lib/supabase';
 
 export async function POST(req: NextRequest) {
   try {
-    const { homeName, amount, date, notes } = await req.json();
+    const { homeName, amount, date, notes } = await req.json() as {
+      homeName: string;
+      amount: number;
+      date: string;
+      notes?: string;
+    };
 
     const { error } = await supabase.from('donation-logs').insert({
       home_name: homeName,
@@ -15,8 +20,9 @@ export async function POST(req: NextRequest) {
     if (error) throw new Error(error.message);
 
     return NextResponse.json({ success: true });
-  } catch (err: any) {
-    console.error('[ERROR] Log Donation:', err.message);
-    return NextResponse.json({ success: false, error: err.message }, { status: 500 });
+  } catch (err: Error | unknown) {
+    const errorMessage = err instanceof Error ? err.message : 'Unknown error';
+    console.error('[ERROR] Log Donation:', errorMessage);
+    return NextResponse.json({ success: false, error: errorMessage }, { status: 500 });
   }
 }

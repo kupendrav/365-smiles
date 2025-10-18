@@ -76,7 +76,7 @@ export default function RecentDonors() {
                 </span>
                 {donor.message && (
                   <p className="mt-2 text-base text-white/80 italic">
-                    "{donor.message}"
+                    &ldquo;{donor.message}&rdquo;
                   </p>
                 )}
               </div>

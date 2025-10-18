@@ -23,33 +23,35 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState(true);
   const [totalAmount, setTotalAmount] = useState<number>(0);
 
-  const fetchStats = async () => {
-    // Pull only necessary columns
-    const { data, error } = await supabase
-      .from("donations")
-      .select("id,name,email,amount,ref_id,screenshot,status,created_at")
-      .order("created_at", { ascending: false });
-
-    if (error) {
-      console.error("Error fetching donations:", error);
-      setLoading(false);
-      return;
-    }
-
-    const rows = (data ?? []) as DonationRow[];
-    setDonations(rows);
-
-    const sum = rows.reduce((acc, d) => {
-      const val = typeof d.amount === "string" ? parseFloat(d.amount) : d.amount;
-      return acc + (isNaN(val) ? 0 : val);
-    }, 0);
-
-    setTotalAmount(sum);
-    setLoading(false);
-  };
-
   useEffect(() => {
     let alive = true;
+    const fetchStats = async (): Promise<void> => {
+      // Pull only necessary columns
+      const { data, error } = await supabase
+        .from("donations")
+        .select("id,name,email,amount,ref_id,screenshot,status,created_at")
+        .order("created_at", { ascending: false });
+
+      if (error) {
+        console.error("Error fetching donations:", error);
+        if (alive) setLoading(false);
+        return;
+      }
+
+      const rows = (data ?? []) as DonationRow[];
+      if (!alive) return;
+      setDonations(rows);
+
+      const sum = rows.reduce((acc, d) => {
+        const val = typeof d.amount === "string" ? parseFloat(d.amount) : d.amount;
+        return acc + (isNaN(val) ? 0 : val);
+      }, 0);
+
+      if (!alive) return;
+      setTotalAmount(sum);
+      setLoading(false);
+    };
+
     (async () => {
       const {
         data: { user },

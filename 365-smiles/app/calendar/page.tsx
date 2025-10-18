@@ -3,8 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { format, startOfMonth, getDay, addMonths, subMonths, isToday } from "date-fns";
 import { createSupabaseClient } from "@/lib/supabaseClient";
-import { useRouter, useSearchParams } from "next/navigation";
-import { FaChevronLeft, FaChevronRight } from "react-icons/fa"; 
+import { useRouter } from "next/navigation"; 
 
 const WEEKDAYS = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
 const MONTHS = [
@@ -38,7 +37,7 @@ export default function CalendarPage() {
   // Update cursor when year or month changes by external controls
   useEffect(() => {
     setCursor(new Date(year, month, 1));
-  }, [year]); // month is local to cursor; year slider changes only year
+  }, [year, month]);
 
   const currentYear = cursor.getFullYear();
   const currentMonth = cursor.getMonth();
@@ -106,8 +105,8 @@ export default function CalendarPage() {
 
     // Try to use 'date' column if it exists, otherwise fallback to 'created_at'
     // Option A: If your schema definitely has 'date' (YYYY-MM-DD), keep this block.
-    let data: any[] | null = null;
-    let error: any = null;
+    let data: { date?: string; created_at?: string }[] | null = null;
+    let error: { message?: string } | null = null;
 
     // First, attempt 'date' column
     ({ data, error } = await supabase

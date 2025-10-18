@@ -3,7 +3,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import { createSupabaseClient } from "@/lib/supabaseClient";
-import { motion, useScroll, useSpring, useTransform } from "framer-motion";
+import { motion, useScroll, useSpring } from "framer-motion";
 
 
 type Donor = {
@@ -58,24 +58,11 @@ export default function Home() {
     fetchDonors();
   }, [supabase]);
 
-  // Map rotation on scroll
-  const rotate = useTransform(scrollYProgress, [0, 1], [0, 360]);
+  // Map rotation on scroll - REMOVED (unused variable)
 
-  // Controls play/pause for each video
-  const [playing, setPlaying] = useState([false, false, false]);
-  const videoRefs = [useRef<HTMLVideoElement>(null), useRef<HTMLVideoElement>(null), useRef<HTMLVideoElement>(null)];
-
-  // Handles play/pause for a video
-  function handlePlayPause(idx: number) {
-    const refs = videoRefs[idx].current;
-    if (!refs) return;
-    if (playing[idx]) {
-      refs.pause();
-    } else {
-      refs.play();
-    }
-    setPlaying((prev) => prev.map((p, i) => (i === idx ? !p : p)));
-  }
+  // Controls play/pause for each video - REMOVED (unused variables)
+  // const [playing, setPlaying] = useState([false, false, false]);
+  // const videoRefs = [useRef<HTMLVideoElement>(null), useRef<HTMLVideoElement>(null), useRef<HTMLVideoElement>(null)];
 
   return (
     <div className="relative min-h-screen w-full bg-gradient-to-b from-gray-950 via-gray-900 to-black text-white overflow-x-hidden">
@@ -250,7 +237,7 @@ export default function Home() {
         </div>
         {donor.message && (
           <p className="mt-4 text-base text-white/80 italic break-words line-clamp-3">
-            "{donor.message}"
+            &ldquo;{donor.message}&rdquo;
           </p>
         )}
       </div>
@@ -319,7 +306,9 @@ export default function Home() {
               className="rounded-full border border-white/30 px-6 py-3 hover:bg-white/10 transition"
               onClick={() => {
                 const video = document.getElementById("video-education") as HTMLVideoElement;
-                if (video) video.paused ? video.play() : video.pause();
+                if (video) { 
+                  if (video.paused) { video.play(); } else { video.pause(); }
+                }
               }}
             >
               See Impact
@@ -364,7 +353,9 @@ export default function Home() {
               className="rounded-full border border-white/30 px-6 py-3 hover:bg-white/10 transition"
               onClick={() => {
                 const video = document.getElementById("video-daily") as HTMLVideoElement;
-                if (video) video.paused ? video.play() : video.pause();
+                if (video) { 
+                  if (video.paused) { video.play(); } else { video.pause(); }
+                }
               }}
             >
               See Impact
@@ -409,7 +400,9 @@ export default function Home() {
               className="rounded-full border border-white/30 px-6 py-3 hover:bg-white/10 transition"
               onClick={() => {
                 const video = document.getElementById("video-medicine") as HTMLVideoElement;
-                if (video) video.paused ? video.play() : video.pause();
+                if (video) { 
+                  if (video.paused) { video.play(); } else { video.pause(); }
+                }
               }}
             >
               See Impact

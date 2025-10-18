@@ -85,67 +85,7 @@ export default function DonationSummaryPage() {
     return () => {
       alive = false;
     };
-  }, [supabase]);useEffect(() => {
-  let alive = true;
-  (async () => {
-    // 1) Pull donation-logs for charts and table
-    const { data: logsData, error: logsErr } = await supabase
-      .from("donation-logs")
-      .select("id,date,home_name,amount,notes")
-      .order("date", { ascending: false });
-
-    if (logsErr) {
-      if (alive) setLoading(false);
-      return;
-    }
-
-    const rows = (logsData ?? []).map((r: any) => ({
-      ...r,
-      amount: typeof r.amount === "string" ? parseFloat(r.amount) : r.amount,
-    })) as LogRow[];
-
-    if (!alive) return;
-
-    setLogs(rows);
-
-    // Build grouped data for bar chart
-    const totals: Record<string, number> = {};
-    rows.forEach((log) => {
-      const amt = typeof log.amount === "number" ? log.amount : 0;
-      totals[log.home_name] = (totals[log.home_name] || 0) + (isNaN(amt) ? 0 : amt);
-    });
-    setGrouped(Object.entries(totals).map(([name, value]) => ({ name, value })));
-
-    // 2) Use the same total logic as frontpage/dashboard:
-    // Sum of amounts from 'donations' where status is NOT NULL (skip unverified/null)
-    const { data: totalData, error: tErr } = await supabase
-      .from("donations")
-      .select("amount,status")
-      .not("status", "is", null);
-
-    if (!alive) return;
-
-    if (tErr) {
-      setTotalReceived(0);
-    } else {
-      const sum =
-        (totalData ?? []).reduce((acc: number, item: { amount: number | string }) => {
-          const val = typeof item.amount === "string" ? parseFloat(item.amount) : item.amount;
-          return acc + (isNaN(val) ? 0 : val);
-        }, 0) ?? 0;
-      setTotalReceived(sum);
-    }
-
-    // If "Total Donated" mirrors the same logic for now:
-    setTotalDonated((prev) => (prev ? prev : totalReceived));
-
-    setLoading(false);
-  })();
-
-  return () => {
-    alive = false;
-  };
-}, [supabase]);
+  }, [supabase]);
 
 
   const handleDelete = async (id: string) => {
