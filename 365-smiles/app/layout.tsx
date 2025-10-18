@@ -1,5 +1,6 @@
 import './globals.css';
 import { ReactNode } from 'react';
+import { Analytics } from "@vercel/analytics/next"
 
 export const metadata = {
   title: '365 Smiles',
@@ -10,7 +11,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en">
       
-      <body>{children}</body>
+      <body>{children}  <Analytics /> </body>
     </html>
   );
 }
