@@ -77,12 +77,6 @@ export default function AdminFrontpage() {
               Log Donation
             </button>
             <button
-              onClick={() => router.push("/admin/locations")}
-              className="px-4 py-2 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 transition"
-            >
-              Locations
-            </button>
-            <button
               onClick={() => router.push("/admin/donation-summary")}
               className="px-4 py-2 rounded-lg bg-pink-600 text-white hover:bg-pink-700 transition"
             >
