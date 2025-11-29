@@ -1,0 +1,44 @@
+flowchart TD
+    %% Nodes
+    Start((Start))
+    Home[Home Page]
+    DonateBtn{Click Donate}
+    
+    subgraph Donation_Process [Donation Flow]
+        Select[Select Date / Cause]
+        Details[Enter Name & Message]
+        Payment[Upload UPI Payment Proof]
+        Submit[Submit Donation]
+        Success(Thank You Page)
+    end
+    
+    subgraph System_Actions [System Backend]
+        SaveDB[(Save to Database)]
+        UploadImg[Upload Proof to Storage]
+        SendEmail[Send Certificate Email]
+    end
+    
+    subgraph Admin_Process [Admin Flow]
+        Login[Admin Login]
+        Dashboard[Dashboard]
+        Verify[Verify Donation]
+        Log[Log Manual Donation]
+    end
+
+    %% Edges
+    Start --> Home
+    Home --> DonateBtn
+    DonateBtn --> Select
+    Select --> Details
+    Details --> Payment
+    Payment --> Submit
+    
+    Submit --> SaveDB
+    Submit --> UploadImg
+    SaveDB --> SendEmail
+    Submit --> Success
+    
+    Login --> Dashboard
+    Dashboard --> Verify
+    Dashboard --> Log
+    Verify -.->|Updates Status| SaveDB

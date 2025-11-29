@@ -1,0 +1,67 @@
+graph TD
+    %% Styles
+    classDef client fill:#e1f5fe,stroke:#01579b,stroke-width:2px;
+    classDef server fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px;
+    classDef db fill:#fff3e0,stroke:#ef6c00,stroke-width:2px;
+    classDef external fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px;
+
+    subgraph Client_Side ["Client (Browser)"]
+        direction TB
+        Home[Home Page]:::client
+        Donate[Donate Pages]:::client
+        Admin[Admin Dashboard]:::client
+        
+        subgraph User_Flows
+            Home -->|View| RecentDonors[Recent Donors List]
+            Donate -->|Select Date| Calendar[Calendar View]
+            Donate -->|Upload Proof| Payment[UPI Payment / Proof]
+        end
+    end
+
+    subgraph Server_Side ["Next.js Server (App Router)"]
+        direction TB
+        
+        subgraph API_Routes
+            SubmitAPI["/api/submit-donation"]:::server
+            CheckAPI["/api/check-donation"]:::server
+            PublicAPI["/api/public-donations"]:::server
+            LogAPI["/api/log-donation"]:::server
+        end
+
+        subgraph Server_Actions
+            GenCert[Certificate Generator]:::server
+            AuthCheck[Auth Middleware]:::server
+        end
+    end
+
+    subgraph Infrastructure ["Supabase & External"]
+        direction TB
+        
+        subgraph Database
+            Auth[Supabase Auth]:::db
+            DB[(PostgreSQL DB)]:::db
+            Storage[Supabase Storage]:::db
+        end
+        
+        subgraph External_Services
+            Resend[Resend Email API]:::external
+        end
+    end
+
+    %% Connections
+    Donate -->|POST Form Data| SubmitAPI
+    Admin -->|Fetch Data| LogAPI
+    Admin -->|Auth| Auth
+    Home -->|Fetch Donors| PublicAPI
+    
+    SubmitAPI -->|Insert Record| DB
+    SubmitAPI -->|Upload Image| Storage
+    SubmitAPI -->|Trigger Email| Resend
+    
+    LogAPI -->|Read/Write| DB
+    PublicAPI -->|Read Public Data| DB
+    
+    Resend -->|Send Certificate| UserEmail((User Email))
+    
+    %% Data Flow Details
+    DB -- Tables: donations, public-donations, donation-logs --> LogAPI

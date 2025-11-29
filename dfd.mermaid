@@ -1,0 +1,46 @@
+flowchart TD
+    %% Styles for DFD
+    classDef process fill:#ffffff,stroke:#000000,stroke-width:2px,color:#000000;
+    classDef entity fill:#ffffff,stroke:#000000,stroke-width:2px,stroke-dasharray: 5 5,color:#000000;
+    classDef store fill:#ffffff,stroke:#000000,stroke-width:2px,shape:cylinder,color:#000000;
+
+    %% External Entities
+    User[User / Donor]:::entity
+    Admin[Admin]:::entity
+    EmailSystem[Email Service]:::entity
+
+    %% Processes
+    P1((1.0 Submit Donation)):::process
+    P2((2.Transparency and trust
+Verification workflow: Admin review, document checks, and status transitions for institutions and needs before going live.​
+
+Audit logs and reports: Immutable logs of donations, disbursements, and updates with exportable reports.​
+
+Public dashboards: Aggregate metrics, impact counters, and recently funded items to build trust0 Verify Donation)):::process
+    P3((3.0 Generate Certificate)):::process
+    P4((4.0 View Reports)):::process
+
+    %% Data Stores
+    D1[(Donations DB)]:::store
+    D2[(Storage Bucket)]:::store
+
+    %% Data Flows
+    User -->|Donation Details & Proof| P1
+    P1 -->|Save Record| D1
+    P1 -->|Upload Image| D2
+    
+    Admin -->|Fetch Pending| P2
+    D1 -->|Donation Data| P2
+    P2 -->|Update Status| D1
+    
+    P2 -->|Trigger| P3
+    P3 -->|Fetch Details| D1
+    P3 -->|Send Certificate| EmailSystem
+    EmailSystem -->|Email| User
+    
+    Admin -->|Request Stats| P4
+    D1 -->|Aggregated Data| P4
+    P4 -->|Dashboard View| Admin
+
+    %% Layout adjustments for size/clarity
+    linkStyle default stroke:#000000,stroke-width:2px;
