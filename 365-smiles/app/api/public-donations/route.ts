@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
-import { PDFDocument, rgb } from "pdf-lib";
-import fontkit from "@pdf-lib/fontkit";
+import { PDFDocument, rgb, StandardFonts } from "pdf-lib";
 import { Resend } from "resend";
 import fs from "fs/promises";
 import path from "path";
@@ -10,10 +9,13 @@ export const runtime = "nodejs";
 
 const resend = new Resend(process.env.RESEND_API_KEY!);
 
-// Paths and text placement — adjust NAME_COORDS to your template
-const CERT_PATH = path.join(process.cwd(), "public", "certi.pdf");
-const FONT_PATH = path.join(process.cwd(), "public", "fonts", "NotoSans-Regular.ttf");
-const NAME_COORDS = { x: 100, y: 285, size: 40 };
+// Text placement + template paths
+const NAME_COORDS = { x: 412, y: 306, size: 40 };
+const TEMPLATE_MAP: Record<string, string> = {
+  "education": path.join(process.cwd(), "public", "certi-2.pdf"),
+  "medical-support": path.join(process.cwd(), "public", "certi-3.pdf"),
+  "daily-needs": path.join(process.cwd(), "public", "certi-4.pdf"),
+};
 
 type ParsedForm = {
   name: string;
@@ -24,13 +26,14 @@ type ParsedForm = {
   file: File;
 };
 
-async function parseForm(req: NextRequest): Promise<ParsedForm> {
+async function parseForm(req: NextRequest): Promise<ParsedForm & { type?: string }> {
   const formData = await req.formData();
 
   const name = formData.get("name")?.toString() || "";
   const email = formData.get("email")?.toString() || "";
   const amountStr = formData.get("amount")?.toString() || "";
   const message = formData.get("message")?.toString() || "";
+  const type = formData.get("type")?.toString() || "";
   const date = formData.get("date")?.toString() || "";
   const file = formData.get("file");
 
@@ -43,36 +46,14 @@ async function parseForm(req: NextRequest): Promise<ParsedForm> {
     throw new Error("Invalid amount");
   }
 
-  return { name, email, amount, message, date, file };
+  return { name, email, amount, message, date, file, type };
 }
 
-async function generateCertificateFromTemplate(donorName: string): Promise<Uint8Array> {
-  // Load your certificate template
-  const templateBytes = await fs.readFile(CERT_PATH);
-  const pdfDoc = await PDFDocument.load(templateBytes);
-
-  // Register fontkit and embed a Unicode-capable font (supports ₹ and multilingual names)
-  pdfDoc.registerFontkit(fontkit);
-  const fontBytes = await fs.readFile(FONT_PATH);
-  const customFont = await pdfDoc.embedFont(fontBytes); // ← remove { subset: true }
-
-  const safeName = donorName.replace(/\s+/g, " ").trim();
-  const gold = rgb(0.831, 0.686, 0.215);
-  const [page] = pdfDoc.getPages();
-  page.drawText(safeName, {
-    x: NAME_COORDS.x,
-    y: NAME_COORDS.y,
-    size: NAME_COORDS.size,
-    font: customFont,
-    color: gold
-  });
-
-  return pdfDoc.save();
-}
-
+// Certificate generation performed inline in POST handler using selected template
 export async function POST(req: NextRequest) {
   try {
-    const { name, email, amount, message, file } = await parseForm(req);
+    const parsed = await parseForm(req);
+    const { name, email, amount, message, file, type } = parsed;
 
     // Upload screenshot to Supabase Storage
     const buffer = Buffer.from(await file.arrayBuffer());
@@ -105,16 +86,49 @@ export async function POST(req: NextRequest) {
       throw new Error("Database insert failed: " + insertErr.message);
     }
 
-    // Generate personalized certificate
-    const certBytes = await generateCertificateFromTemplate(name);
+    const resolvedType = (type && type in TEMPLATE_MAP) ? type : "education";
+    const certPath = TEMPLATE_MAP[resolvedType] || path.join(process.cwd(), "public", "certi-1.pdf");
+
+    const templateBytes = await fs.readFile(certPath);
+    const pdfDoc = await PDFDocument.load(templateBytes);
+    const [page] = pdfDoc.getPages();
+    const timesFont = await pdfDoc.embedFont(StandardFonts.TimesRoman);
+
+    const safeName = name.replace(/\s+/g, " ").trim();
+    page.drawText(safeName, {
+      x: NAME_COORDS.x,
+      y: NAME_COORDS.y,
+      size: NAME_COORDS.size,
+      font: timesFont,
+      color: rgb(0, 0, 0),
+    });
+
+    const certBytes = await pdfDoc.save();
     const certBuffer = Buffer.from(certBytes);
 
     // Email the certificate to donor
+    // Build type-specific email message
+    let emailText = `Dear ${name},\n\nThank you for your generous donation of ₹${amount} to 365 Smiles.\n`;
+    let subject = "Your 365 Smiles Certificate of Appreciation";
+    if (resolvedType === "education") {
+      subject = "Your 365 Smiles Education Donation Certificate";
+      emailText += "Your contribution empowers education — supporting scholarships, learning materials, and mentoring for children in need.\n";
+    } else if (resolvedType === "medical-support") {
+      subject = "Your 365 Smiles Medical Support Certificate";
+      emailText += "Your gift provides essential medical care, medicines, and emergency support to families in crisis.\n";
+    } else if (resolvedType === "daily-needs") {
+      subject = "Your 365 Smiles Daily Needs Certificate";
+      emailText += "Your donation supplies daily essentials — food, hygiene kits, and relief for vulnerable households.\n";
+    } else {
+      emailText += "Please find your certificate attached.\n";
+    }
+    emailText += "\nWarm regards,\n365 Smiles Team";
+
     await resend.emails.send({
       from: "365 Smiles <onboarding@resend.dev>",
       to: email,
-      subject: "Your 365 Smiles Certificate of Appreciation",
-      text: `Dear ${name},\n\nThank you for your generous donation of ₹${amount} to 365 Smiles.\nPlease find your certificate attached.\n\nWarm regards,\n365 Smiles Team`,
+      subject,
+      text: emailText,
       attachments: [
         {
           filename: `${name}-certificate.pdf`,

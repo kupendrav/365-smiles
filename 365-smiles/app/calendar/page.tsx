@@ -27,9 +27,10 @@ export default function CalendarPage() {
   const [year, setYear] = useState<number>(now.getFullYear());
   const month = cursor.getMonth();
 
-  // Donated dates cache for the currently viewed month (Set of formatted strings)
-  const [donatedDates, setDonatedDates] = useState<Set<string>>(new Set());
+  // Donated dates cache for the currently viewed month (Map of yyyy-MM-dd -> donor name)
+  const [donatedDates, setDonatedDates] = useState<Map<string, string>>(new Map());
   const [loadingDonations, setLoadingDonations] = useState(false);
+  const [donorModal, setDonorModal] = useState<{ date: string; name: string } | null>(null);
 
   // Scroll ref for months rail
   const monthRailRef = useRef<HTMLDivElement | null>(null);
@@ -90,7 +91,7 @@ export default function CalendarPage() {
   let active = true;
   (async () => {
     setLoadingDonations(true);
-    setDonatedDates(new Set());
+    setDonatedDates(new Map());
 
     const start = new Date(currentYear, currentMonth, 1);
     const end = new Date(currentYear, currentMonth + 1, 0);
@@ -105,13 +106,13 @@ export default function CalendarPage() {
 
     // Try to use 'date' column if it exists, otherwise fallback to 'created_at'
     // Option A: If your schema definitely has 'date' (YYYY-MM-DD), keep this block.
-    let data: { date?: string; created_at?: string }[] | null = null;
+    let data: { date?: string; created_at?: string; name?: string }[] | null = null;
     let error: { message?: string } | null = null;
 
     // First, attempt 'date' column
     ({ data, error } = await supabase
       .from("donations")
-      .select("date")
+      .select("date,name")
       .not("date", "is", null)
       .gte("date", format(start, "yyyy-MM-dd"))
       .lte("date", format(end, "yyyy-MM-dd"))
@@ -121,7 +122,7 @@ export default function CalendarPage() {
     if (error || !data || data.length === 0) {
       const res = await supabase
         .from("donations")
-        .select("created_at")
+        .select("created_at,name")
         .gte("created_at", startIso)
         .lte("created_at", endIso);
       data = res.data ?? [];
@@ -136,22 +137,21 @@ export default function CalendarPage() {
       return;
     }
 
-    // Normalize rows into local yyyy-MM-dd keys
-    const keys = new Set<string>();
-    for (const row of data) {
-      const raw = (row.date as string) ?? (row.created_at as string);
+    // Normalize rows into map of yyyy-MM-dd => donor name
+    const map = new Map<string, string>();
+    for (const row of data as { date?: string; created_at?: string; name?: string }[]) {
+      const raw = row.date ?? row.created_at;
       if (!raw) continue;
 
-      // If already yyyy-MM-dd, keep it; otherwise parse and format
-      const key =
-        /^\d{4}-\d{2}-\d{2}$/.test(raw)
-          ? raw
-          : format(new Date(raw), "yyyy-MM-dd");
+      const name = row.name ?? "a donor";
 
-      keys.add(key);
+      // If already yyyy-MM-dd, keep it; otherwise parse and format
+      const key = /^\d{4}-\d{2}-\d{2}$/.test(raw) ? raw : format(new Date(raw), "yyyy-MM-dd");
+
+      map.set(key, name);
     }
 
-    setDonatedDates(keys);
+    setDonatedDates(map);
     setLoadingDonations(false);
   })();
 
@@ -179,6 +179,23 @@ export default function CalendarPage() {
 
   return (
     <div className="min-h-screen w-full bg-gradient-to-br from-[#A36BFF] via-[#F08AD1] to-[#FFC1A3] p-6 md:p-10">
+      {donorModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/40" onClick={() => setDonorModal(null)} />
+          <div className="relative z-10 max-w-md w-full bg-white rounded-lg p-6 shadow-lg">
+            <h3 className="text-lg font-semibold mb-2">Date already sponsored</h3>
+            <p className="text-sm text-gray-700 mb-4">{`It's ${donorModal.name} — already donated on ${donorModal.date}. Please choose another date.`}</p>
+            <div className="flex justify-end">
+              <button
+                onClick={() => setDonorModal(null)}
+                className="px-4 py-2 rounded bg-indigo-600 text-white hover:bg-indigo-700"
+              >
+                OK
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       {/* Page Heading */}
 <div className="mx-auto max-w-5xl text-center mb-6 md:mb-8">
   <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-extrabold leading-tight bg-clip-text text-transparent bg-gradient-to-b from-white to-white/80 drop-shadow-[0_2px_8px_rgba(0,0,0,0.25)]">
@@ -240,6 +257,7 @@ export default function CalendarPage() {
                   const cellDate = new Date(currentYear, currentMonth, val);
                   const key = format(cellDate, "yyyy-MM-dd");
                   const donated = donatedDates.has(key);
+                  const donorName = donated ? donatedDates.get(key) ?? "a donor" : null;
                   const today = isToday(cellDate);
                   const isSelected =
                     selected && format(selected, "yyyy-MM-dd") === key;
@@ -256,10 +274,15 @@ export default function CalendarPage() {
                   return (
                     <button
                       key={val}
-                      onClick={() => !donated && handleDayClick(val)}
-                      disabled={donated}
+                      onClick={() => {
+                        if (donated) {
+                          setDonorModal({ date: key, name: donorName! });
+                          return;
+                        }
+                        handleDayClick(val);
+                      }}
                       className={`${base} ${classes}`}
-                      title={donated ? "Already sponsored" : "Select date"}
+                      title={donated ? `Already sponsored by ${donorName}` : "Select date"}
                     >
                       {val}
                       {today && !isSelected && !donated && (

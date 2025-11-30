@@ -1,7 +1,8 @@
 "use client";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { createSupabaseClient } from "@/lib/supabaseClient";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 export default function ThankYou() {
   const supabase = createSupabaseClient();
@@ -182,19 +183,19 @@ export default function ThankYou() {
           </button>
 
           <div className="mt-4 flex items-center justify-center gap-3 text-sm">
-            <a
+            <Link
               href="/"
               className="text-white/70 hover:text-white underline underline-offset-4"
             >
               Go to homepage
-            </a>
+            </Link>
             <span className="text-white/30">•</span>
-            <a
+            <Link
               href="/recentdonars"
               className="text-white/70 hover:text-white underline underline-offset-4"
             >
               View recent donors
-            </a>
+            </Link>
           </div>
         </form>
       ) : (
@@ -207,18 +208,18 @@ export default function ThankYou() {
           <p className="text-white/70 mb-6">Redirecting to homepage shortly...</p>
 
           <div className="flex items-center justify-center gap-3">
-            <a
+            <Link
               href="/"
               className="rounded-lg bg-white/10 px-4 py-2 hover:bg-white/15 transition"
             >
               Go Home
-            </a>
-            <a
+            </Link>
+            <Link
               href="/recentdonars"
               className="rounded-lg bg-pink-500 px-4 py-2 hover:bg-pink-600 transition"
             >
               See Donors
-            </a>
+            </Link>
           </div>
         </div>
       )}

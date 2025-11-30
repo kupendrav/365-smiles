@@ -65,7 +65,7 @@ export default function Home() {
   // const videoRefs = [useRef<HTMLVideoElement>(null), useRef<HTMLVideoElement>(null), useRef<HTMLVideoElement>(null)];
 
   return (
-    <div className="relative min-h-screen w-full bg-gradient-to-b from-gray-950 via-gray-900 to-black text-white overflow-x-hidden">
+    <div className="relative min-h-screen w-full bg-gradient-to-b from-gray-950 via-gray-900 to-black text-white overflow-x-hidden page-shell">
       {/* Top Scroll Progress */}
       <motion.div
         style={{ scaleX }}
@@ -73,8 +73,8 @@ export default function Home() {
       />
 
       {/* Navbar */}
-      <header className="fixed top-0 left-0 right-0 z-50 backdrop-blur-md bg-black/40 border-b border-white/10">
-        <div className="mx-auto max-w-7xl px-4 py-3 flex items-center justify-between">
+      <header className="fixed top-0 left-0 right-0 z-50 backdrop-blur-md bg-black/55 border-b border-white/10 supports-backdrop-filter:backdrop-blur-lg">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 py-3 flex items-center justify-between">
           {/* Left: 3-dots menu */}
           <div className="relative">
             <button
@@ -137,22 +137,22 @@ export default function Home() {
       </header>
 
       {/* Hero with video background */}
-      <section id="hero" className="relative h-[100svh] w-full">
+      <section id="hero" className="relative min-h-[100svh] w-full flex items-stretch">
         <video
-          className="absolute inset-0 h-full w-full object-cover"
+          className="video-bg-cover"
           src="/hero.mp4"
           autoPlay
           muted
           loop
           playsInline
         />
-        <div className="absolute inset-0 bg-black/50" />
-        <div className="relative z-10 h-full flex flex-col items-center justify-center text-center px-4">
+        <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/50 to-black/70" />
+        <div className="relative z-10 flex flex-col items-center justify-center text-center px-4 sm:px-6 py-24 lg:py-32 w-full">
           <motion.h1
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
-            className="text-4xl md:text-6xl font-bold leading-tight"
+            className="text-hero font-bold tracking-tight drop-shadow-xl"
           >
             Donate birthdays. Create <b>smiles</b>. Feed lives. 
           </motion.h1>
@@ -160,7 +160,7 @@ export default function Home() {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.15, duration: 0.6 }}
-            className="mt-4 max-w-2xl text-base md:text-lg text-white/80"
+            className="mt-5 max-w-2xl text-base md:text-lg lg:text-xl text-white/80 leading-relaxed"
           >
             Support orphans, elders, and differently-abled people—365 days a year. 
           </motion.p>
@@ -168,17 +168,17 @@ export default function Home() {
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.25, duration: 0.6 }}
-            className="mt-8 flex items-center gap-3"
+            className="mt-10 flex flex-wrap items-center justify-center gap-4"
           >
             <Link
               href="/calendar"
-              className="rounded-full bg-gradient-to-r from-rose-500 to-pink-500 px-6 py-3 text-sm md:text-base font-medium hover:opacity-90 active:scale-95 transition"
+              className="rounded-full bg-gradient-to-r from-rose-500 to-pink-500 px-6 py-3 text-sm md:text-base font-medium shadow-lg hover:shadow-pink-500/40 hover:opacity-95 active:scale-95 transition"
             >
               Sponsor a Day
             </Link>
             <Link
               href="#donors"
-              className="rounded-full border border-white/20 px-6 py-3 text-sm md:text-base hover:bg-white/10 active:scale-95 transition"
+              className="rounded-full border border-white/30 px-6 py-3 text-sm md:text-base backdrop-blur-sm bg-white/5 hover:bg-white/15 active:scale-95 transition"
             >
               Recent Donors
             </Link>
@@ -190,15 +190,15 @@ export default function Home() {
   id="donors"
   className="relative py-20 md:py-24 bg-gradient-to-b from-black to-gray-950 min-h-[60vh]"
 >
-  <div className="max-w-6xl px-4 mx-auto relative">
-    <div className="flex items-center justify-between mb-8">
-      <h2 className="text-8xl md:text-3xl font-semibold">⚚ Recent Donors</h2>
+  <div className="max-w-6xl px-4 sm:px-6 mx-auto relative">
+    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-10 gap-6 sm:gap-4">
+      <h2 className="text-3xl md:text-4xl font-semibold tracking-tight">⚚ Recent Donors</h2>
       <Link href="/donate" className="text-pink-400 hover:text-pink-300 font-medium">
         Donate Now →
       </Link>
     </div>
 
-        <div className="flex flex-wrap justify-center gap-8">
+        <div className="flex flex-wrap justify-center gap-6 sm:gap-8">
   {donors.slice(0, 4).map((donor, idx) => (
     <motion.div
       key={donor.id}
@@ -217,8 +217,8 @@ export default function Home() {
         borderColor: "#ec4899",
       }}
       className={`
-        w-full sm:w-96 max-w-[420px] border-2 border-pink-500/30 bg-gradient-to-br from-gray-900/90 to-pink-900/10 p-7 rounded-2xl shadow-xl
-        flex items-center ${idx % 2 === 1 ? "flex-row-reverse" : "flex-row"} gap-6
+        w-full sm:w-80 md:w-96 max-w-[420px] border border-pink-500/30 card-gradient p-6 rounded-2xl shadow-xl
+        flex items-center ${idx % 2 === 1 ? "flex-row-reverse" : "flex-row"} gap-5
         transition-all duration-300
         relative overflow-hidden
       `}
@@ -241,7 +241,7 @@ export default function Home() {
           </p>
         )}
       </div>
-      <div className="flex-shrink-0 w-24 h-24 rounded-xl overflow-hidden bg-gray-700 shadow-lg ring-2 ring-pink-500/30 z-10">
+      <div className="flex-shrink-0 w-20 h-20 sm:w-24 sm:h-24 rounded-xl overflow-hidden bg-gray-700 shadow-lg ring-2 ring-pink-500/30 z-10">
         {donor.image_url ? (
           <Image
             src={donor.image_url}
@@ -275,14 +275,13 @@ export default function Home() {
       
       {/* Causes: three fullscreen sections with snap scroll */}
       <section
-      id="causes"
-      className="py-20 md:py-24 bg-gradient-to-b from-black to-gray-950"
-    >
-            <h2 className="text-5xl md:text-6xl font-extrabold text-center mb-12 text-pink-500 drop-shadow-lg">
-        ⚚ Impact of 365-Smiles ⚚
-
-      </h2>
-      <div className="mx-auto max-w-6xl px-6 grid md:grid-cols-2 gap-12 items-center">
+        id="causes"
+        className="py-20 md:py-24 bg-gradient-to-b from-black to-gray-950"
+      >
+        <h2 className="text-3xl md:text-5xl font-extrabold text-center mb-12 text-pink-500 drop-shadow-lg">
+          ⚚ Impact of 365-Smiles ⚚
+        </h2>
+        <div className="mx-auto max-w-6xl px-4 sm:px-6 grid md:grid-cols-2 gap-14 md:gap-16 items-start">
         {/* Education */}
         <div>
           <h3 className="text-3xl md:text-5xl font-bold">🎓 Education</h3>
@@ -316,7 +315,7 @@ export default function Home() {
           </div>
         </div>
         <div className="flex items-center justify-center">
-          <div className="h-[60vh] w-full max-w-md rounded-2xl bg-gradient-to-tr from-white/10 to-white/5 border border-white/10 shadow-inner flex items-center justify-center overflow-hidden">
+          <div className="h-[50vh] sm:h-[60vh] w-full max-w-md rounded-2xl bg-gradient-to-tr from-white/10 to-white/5 border border-white/10 shadow-inner flex items-center justify-center overflow-hidden">
             <video
               id="video-education"
               src="/a.mp4"
@@ -363,7 +362,7 @@ export default function Home() {
           </div>
         </div>
         <div className="flex items-center justify-center">
-          <div className="h-[60vh] w-full max-w-md rounded-2xl bg-gradient-to-tr from-white/10 to-white/5 border border-white/10 shadow-inner flex items-center justify-center overflow-hidden">
+          <div className="h-[50vh] sm:h-[60vh] w-full max-w-md rounded-2xl bg-gradient-to-tr from-white/10 to-white/5 border border-white/10 shadow-inner flex items-center justify-center overflow-hidden">
             <video
               id="video-daily"
               src="/b.mp4"
@@ -410,7 +409,7 @@ export default function Home() {
           </div>
         </div>
         <div className="flex items-center justify-center">
-          <div className="h-[60vh] w-full max-w-md rounded-2xl bg-gradient-to-tr from-white/10 to-white/5 border border-white/10 shadow-inner flex items-center justify-center overflow-hidden">
+          <div className="h-[50vh] sm:h-[60vh] w-full max-w-md rounded-2xl bg-gradient-to-tr from-white/10 to-white/5 border border-white/10 shadow-inner flex items-center justify-center overflow-hidden">
             <video
               id="video-medicine"
               src="/c.mp4"
@@ -428,7 +427,7 @@ export default function Home() {
 
       {/* What is 365-Smiles? */}
       <section id="about" className="py-20 md:py-28">
-        <div className="mx-auto max-w-7xl px-6 grid md:grid-cols-2 gap-10 items-center">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 grid md:grid-cols-2 gap-12 items-center">
           <div>
             <h2 className="text-3xl md:text-4xl font-bold">What is 365-Smiles?</h2>
             <p className="mt-4 text-white/85">
@@ -437,7 +436,7 @@ export default function Home() {
             <p className="mt-3 text-white/85">
               Through verified partners, transparent tracking, and local delivery, donations reach those in need with dignity. 
             </p>
-            <div className="mt-6 grid sm:grid-cols-3 gap-3">
+            <div className="mt-6 grid grid-cols-2 sm:grid-cols-3 gap-4">
               <div className="rounded-xl border border-white/10 bg-white/5 p-4">
                 <p className="text-2xl font-bold">365+</p>
                 <p className="text-white/80 text-sm">Days of giving</p>
@@ -452,7 +451,7 @@ export default function Home() {
               </div>
             </div>
           </div>
-                    <div className="relative h-[46vh] md:h-[56vh] flex items-center justify-center">
+          <div className="relative h-[42vh] sm:h-[48vh] md:h-[56vh] flex items-center justify-center mt-10 md:mt-0">
             <div className="h-64 w-64 md:h-80 md:w-80 rounded-full border-2 border-white/15 flex items-center justify-center overflow-hidden bg-black">
               <video
                 src="/india.mp4"
@@ -470,7 +469,7 @@ export default function Home() {
 
       {/* FAQs (editable content area) */}
       <section id="faqs" className="py-16 md:py-20 bg-gradient-to-b from-gray-950 to-black">
-        <div className="mx-auto max-w-5xl px-6">
+        <div className="mx-auto max-w-5xl px-4 sm:px-6">
           <h2 className="text-2xl md:text-3xl font-semibold mb-6">FAQs</h2>
           <div className="divide-y divide-white/10 rounded-2xl border border-white/10 overflow-hidden">
             {/* Duplicate/modify these items freely */}
@@ -506,8 +505,8 @@ export default function Home() {
       </section>
 
       {/* Footer */}
-      <footer className="border-t border-white/10 bg-black/60">
-        <div className="mx-auto max-w-7xl px-6 py-10 grid sm:grid-cols-2 lg:grid-cols-4 gap-8">
+      <footer className="border-t border-white/10 bg-black/70">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 py-12 grid sm:grid-cols-2 lg:grid-cols-4 gap-10">
           <div>
             <h3 className="font-semibold text-white/90">365 Smiles</h3>
             <p className="mt-2 text-white/70">
@@ -539,7 +538,7 @@ export default function Home() {
             </ul>
           </div>
         </div>
-        <div className="border-t border-white/10 py-4 text-center text-white/60 text-sm">
+        <div className="border-t border-white/10 py-5 text-center text-white/60 text-sm tracking-wide">
           © {new Date().getFullYear()} 365 Smiles. All rights reserved.
         </div>
       </footer>

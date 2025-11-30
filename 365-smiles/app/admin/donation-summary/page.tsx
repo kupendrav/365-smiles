@@ -43,7 +43,6 @@ export default function DonationSummaryPage() {
   const [logs, setLogs] = useState<LogRow[]>([]);
   const [grouped, setGrouped] = useState<BarDatum[]>([]);
   const [loading, setLoading] = useState(true);
-  const [totalReceived, setTotalReceived] = useState(0);
   const [totalDonated, setTotalDonated] = useState(0); // If separate metric exists, compute accordingly.
 
   useEffect(() => {
@@ -75,7 +74,6 @@ export default function DonationSummaryPage() {
         setGrouped(barData);
 
         const sumAll = rows.reduce((acc, r) => acc + ((r.amount as number) || 0), 0);
-        setTotalReceived(sumAll);
         setTotalDonated(sumAll); // If you track “donated” differently, replace this with your logic.
       }
 
@@ -104,7 +102,6 @@ export default function DonationSummaryPage() {
         });
         setGrouped(Object.entries(totals).map(([name, value]) => ({ name, value })));
         const sumAll = newLogs.reduce((acc, r) => acc + ((r.amount as number) || 0), 0);
-        setTotalReceived(sumAll);
         setTotalDonated(sumAll);
       }
     }
@@ -166,15 +163,8 @@ export default function DonationSummaryPage() {
                 </div>
               </div>
 
-              {/* Right stats */}
+              {/* Right stats (only donated metric retained) */}
               <div className="lg:col-span-3 flex flex-col gap-6">
-                <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow">
-                  <div className="text-sm text-gray-500">Total Donations Received</div>
-                  <div className="text-2xl font-extrabold text-gray-900 mt-1">
-                    ₹ {totalReceived.toLocaleString("en-IN")}
-                  </div>
-                </div>
-
                 <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow">
                   <div className="text-sm text-gray-500">Total Donated</div>
                   <div className="text-2xl font-extrabold text-gray-900 mt-1">

@@ -4,6 +4,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase"; // Your typed Supabase client instance
 import { PDFDocument, rgb, StandardFonts } from "pdf-lib";
 import { Resend } from "resend";
+import { promises as fs } from 'fs';
+import path from 'path';
 
 const resend = new Resend(process.env.RESEND_API_KEY!);
 
@@ -33,57 +35,19 @@ async function parseMultipartForm(req: NextRequest) {
   return { name, email, amount, date, refId, file };
 }
 
-async function generateCertificateBuffer(name: string, amount: number) {
-  const pdfDoc = await PDFDocument.create();
-  const page = pdfDoc.addPage([600, 400]);
-  const helveticaBoldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
-  const helveticaFont = await pdfDoc.embedFont(StandardFonts.Helvetica);
+async function generateCertificateBuffer(name: string) {
+  const filePath = path.join(process.cwd(), 'public', 'certi-1.pdf');
+  const existingPdfBytes = await fs.readFile(filePath);
 
-  page.drawRectangle({
-    x: 0,
-    y: 0,
-    width: page.getWidth(),
-    height: page.getHeight(),
-    color: rgb(0.97, 0.95, 0.91),
-  });
-
-  page.drawText("Certificate of Appreciation", {
-    x: 50,
-    y: 350,
-    size: 30,
-    font: helveticaBoldFont,
-    color: rgb(0, 0, 0),
-  });
-
-  page.drawText(`This certifies that`, {
-    x: 50,
-    y: 310,
-    size: 20,
-    font: helveticaFont,
-    color: rgb(0, 0, 0),
-  });
+  const pdfDoc = await PDFDocument.load(existingPdfBytes);
+  const page = pdfDoc.getPages()[0];
+  const timesRomanFont = await pdfDoc.embedFont(StandardFonts.TimesRoman);
 
   page.drawText(name, {
-    x: 50,
-    y: 280,
-    size: 24,
-    font: helveticaBoldFont,
-    color: rgb(0, 0, 0),
-  });
-
-  page.drawText(`has generously donated ${amount} Rupees to 365 Smiles.`, {
-    x: 50,
-    y: 250,
-    size: 20,
-    font: helveticaFont,
-    color: rgb(0, 0, 0),
-  });
-
-  page.drawText("Thank you for making an impact.", {
-    x: 50,
-    y: 210,
-    size: 16,
-    font: helveticaFont,
+    x: 412,
+    y: 306,
+    size: 40,
+    font: timesRomanFont,
     color: rgb(0, 0, 0),
   });
 
@@ -124,7 +88,7 @@ export async function POST(req: NextRequest) {
       throw new Error("Database insert failed: " + dbError.message);
     }
 
-    const certBuffer = await generateCertificateBuffer(name, amount);
+    const certBuffer = await generateCertificateBuffer(name);
 
     await resend.emails.send({
       from: "365 Smiles <onboarding@resend.dev>",

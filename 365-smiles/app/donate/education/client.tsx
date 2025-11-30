@@ -42,6 +42,7 @@ export function EducationClient() {
     formData.append("name", name.trim());
     formData.append("email", email.trim());
     formData.append("amount", amount.trim());
+    formData.append("type", "education");
     formData.append("message", message.trim());
     if (date) formData.append("date", date);
     formData.append("file", file);
