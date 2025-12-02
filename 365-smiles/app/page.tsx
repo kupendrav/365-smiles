@@ -58,6 +58,7 @@ export default function Home() {
     fetchDonors();
   }, [supabase]);
 
+
   // Map rotation on scroll - REMOVED (unused variable)
 
   // Controls play/pause for each video - REMOVED (unused variables)
@@ -108,6 +109,13 @@ export default function Home() {
                   onClick={() => setMenuOpen(false)}
                 >
                   Donate
+                </Link>
+                <Link
+                  href="/emergencyneed"
+                  className="block px-4 py-3 hover:bg-white/10 transition"
+                  onClick={() => setMenuOpen(false)}
+                >
+                  Emergency Need
                 </Link>
                 <Link
                   href="/about"
@@ -425,7 +433,22 @@ export default function Home() {
       </div>
     </section>
 
+    {/* Approved emergency requests no longer displayed on homepage per request */}
+
       {/* What is 365-Smiles? */}
+      {/* Pledge Certificate Banner */}
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 mt-16">
+        <div className="p-0 flex flex-col md:flex-row items-center gap-6">
+          <div className="flex-1">
+            <h2 className="text-xl md:text-2xl font-bold mb-2">Recognition & Credibility</h2>
+            <p className="text-white/80 text-sm md:text-base leading-relaxed">Certificate earned from the <span className="font-semibold">Department of Social Justice and Empowerment, Government of India</span>.</p>
+            <a href="/pledge-certificate.pdf" target="_blank" rel="noreferrer" className="inline-block mt-4 text-sm font-medium px-4 py-2 rounded-lg bg-pink-600 hover:bg-pink-700 transition">View Certificate</a>
+          </div>
+          <div className="w-full md:w-56 aspect-[4/3] overflow-hidden">
+            <Image src="/pledge-certificate-1.png" alt="Pledge Certificate" width={448} height={336} className="w-full h-full object-contain" />
+          </div>
+        </div>
+      </div>
       <section id="about" className="py-20 md:py-28">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 grid md:grid-cols-2 gap-12 items-center">
           <div>
@@ -451,16 +474,15 @@ export default function Home() {
               </div>
             </div>
           </div>
-          <div className="relative h-[42vh] sm:h-[48vh] md:h-[56vh] flex items-center justify-center mt-10 md:mt-0">
-            <div className="h-64 w-64 md:h-80 md:w-80 rounded-full border-2 border-white/15 flex items-center justify-center overflow-hidden bg-black">
+          <div className="relative mt-10 md:mt-0 flex items-center justify-center">
+            <div className="relative aspect-square w-64 md:w-80 rounded-full overflow-hidden shadow-lg">
               <video
                 src="/india.mp4"
-                className="h-full w-full object-cover rounded-full"
+                className="absolute inset-0 h-full w-full object-cover scale-110"
                 autoPlay
                 muted
                 loop
                 playsInline
-                style={{ background: "black" }}
               />
             </div>
           </div>

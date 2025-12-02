@@ -55,6 +55,19 @@ export async function POST(req: NextRequest) {
     const parsed = await parseForm(req);
     const { name, email, amount, message, file, type } = parsed;
 
+    // Simple duplicate guard: if an identical (name,email,amount,message) exists in last 5 minutes skip insert
+    const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString();
+    const { data: existing, error: dupErr } = await supabase
+      .from("public-donations")
+      .select("id,name,amount,message,created_at")
+      .gte("created_at", fiveMinutesAgo)
+      .eq("name", name)
+      .eq("amount", amount)
+      .eq("message", message || null);
+    if (!dupErr && existing && existing.length > 0) {
+      return NextResponse.json({ success: true, skipped: true, reason: "Duplicate recent donation suppressed" });
+    }
+
     // Upload screenshot to Supabase Storage
     const buffer = Buffer.from(await file.arrayBuffer());
     const ext = file.name.split(".").pop() || "png";

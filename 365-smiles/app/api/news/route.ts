@@ -108,22 +108,24 @@ export async function GET(request: Request) {
       let cseData: NewsResult[] | null = null
       let cseError: string | undefined
       try {
-        const data = await fetchCombinedNews({ limit, recentDays: 7 })
+        const data = await fetchCombinedNews({ limit, recentDays: 30 }) // Extend to 30 days for more results
         cseData = data
       } catch (e) {
         cseError = (e as Error)?.message || String(e)
       }
       if (cseData && cseData.length > 0) {
-        return NextResponse.json({ ok: true, kind, count: cseData.length, data: cseData, debug: { cse: 'ok' } })
+        return NextResponse.json({ ok: true, kind, count: cseData.length, data: cseData, source: 'worldnews', debug: { worldnews: 'ok', count: cseData.length } })
       }
 
-      // Fallback to Supabase cached emergency needs (recent)
+      // Only fallback to Supabase if World News failed completely
+      // Filter out test/manual entries
       let rows: EmergencyNeedRow[] | null = null
       let supabaseErr: string | undefined
       try {
         const res = await supabase
           .from('emergency_needs')
           .select('title, source_url, platform, created_at, read')
+          .not('platform', 'eq', 'manual-test') // Exclude manual test entries
           .order('created_at', { ascending: false })
           .limit(limit)
         rows = (res.data as EmergencyNeedRow[]) || []
@@ -143,14 +145,14 @@ export async function GET(request: Request) {
       if (!mapped.length) {
         const dummy = await getDummyNews(limit)
         const debug: Record<string, unknown> = {
-          cse: cseError ? { ok: false, error: cseError } : { ok: !!cseData },
+          worldnews: { ok: false, error: cseError },
           supabaseEmergency: { ok: Array.isArray(rows), count: (rows || []).length, error: supabaseErr },
           dummy: { used: true, count: dummy.length }
         }
-        return NextResponse.json({ ok: true, kind, count: dummy.length, data: dummy, debug, note: 'Dummy news used (combined fallback).' })
+        return NextResponse.json({ ok: true, kind, count: dummy.length, data: dummy, source: 'dummy', debug, note: 'Dummy news used (combined fallback).' })
       }
-      const debug: Record<string, unknown> = { cse: cseError ? { ok: false, error: cseError } : { ok: !!cseData }, supabase: { ok: Array.isArray(rows), count: (rows || []).length, error: supabaseErr } }
-      return NextResponse.json({ ok: true, kind, count: mapped.length, data: mapped, debug })
+      const debug: Record<string, unknown> = { worldnews: { ok: false, error: cseError }, supabase: { ok: Array.isArray(rows), count: (rows || []).length, error: supabaseErr } }
+      return NextResponse.json({ ok: true, kind, count: mapped.length, data: mapped, source: 'supabase', debug })
     }
     if (kind === 'emergency') {
       let cseData: NewsResult[] | null = null
@@ -190,13 +192,13 @@ export async function GET(request: Request) {
       if (!mapped.length) {
         const dummy = await getDummyNews(limit)
         const debug: Record<string, unknown> = {
-          cse: cseError ? { ok: false, error: cseError } : { ok: !!cseData },
+          cse: { ok: false, note: 'Google CSE removed' },
           supabaseEmergency: { ok: Array.isArray(rows), count: (rows || []).length, error: supabaseErr },
           dummy: { used: true, count: dummy.length }
         }
         return NextResponse.json({ ok: true, kind, count: dummy.length, data: dummy, debug, note: 'Dummy news used (emergency fallback).' })
       }
-      const debug: Record<string, unknown> = { cse: cseError ? { ok: false, error: cseError } : { ok: !!cseData }, supabase: { ok: Array.isArray(rows), count: (rows || []).length, error: supabaseErr } }
+      const debug: Record<string, unknown> = { cse: { ok: false, note: 'Google CSE removed' }, supabase: { ok: Array.isArray(rows), count: (rows || []).length, error: supabaseErr } }
       return NextResponse.json({ ok: true, kind, count: mapped.length, data: mapped, debug })
     }
     // fallback single-topic behaviour
@@ -208,11 +210,7 @@ export async function GET(request: Request) {
     console.error('[api/news] Error:', err)
     const msg = typeof (err as Error)?.message === 'string' ? (err as Error).message : 'Unknown error'
     const statusHint: number | undefined = typeof (err as { status?: number })?.status === 'number' ? (err as { status?: number }).status : undefined
-    const status = /env vars missing/i.test(msg) ? 400 : (statusHint ?? 500)
-    const guidance = status === 403 ? 'Enable Custom Search API in Google Cloud for the API key project, then retry.' : undefined
-    if (status === 403) {
-      return NextResponse.json({ ok: true, data: [], note: 'Google CSE disabled', guidance }, { status: 200 })
-    }
-    return NextResponse.json({ ok: false, error: msg, guidance }, { status })
+    const status = statusHint ?? 500
+    return NextResponse.json({ ok: false, error: msg }, { status })
   }
 }

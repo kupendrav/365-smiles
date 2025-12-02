@@ -15,8 +15,6 @@ export type NewsResult = {
   publishedAt?: string
 }
 
-const API_KEY = process.env.GOOGLE_API_KEY
-const CX = process.env.GOOGLE_CX
 const WORLD_NEWS_KEY = process.env.WORLD_NEWS_API_KEY
 
 async function fetchWithRetry(url: string, attempts = 3, backoff = 300) {
@@ -25,7 +23,7 @@ async function fetchWithRetry(url: string, attempts = 3, backoff = 300) {
       const res = await fetch(url, { next: { revalidate: 60 * 30 } })
       if (!res.ok) {
         const text = await res.text()
-        const err = new Error(`Google CSE error ${res.status}: ${text}`) as Error & { status?: number }
+        const err = new Error(`HTTP error ${res.status}: ${text}`) as Error & { status?: number }
         err.status = res.status
         throw err
       }
@@ -43,37 +41,17 @@ function buildQuery(topic: 'old-age' | 'orphans') {
   const base = topic === 'old-age'
     ? 'elderly OR senior citizens OR old age home'
     : 'orphans OR orphanage OR child welfare'
-  return `${base} site:.in OR India`
+  // Broad query for WorldNews API
+  return `India (${base})`
 }
 
 export async function fetchNews(topic: 'old-age' | 'orphans', opts?: { limit?: number; recentDays?: number }) {
-  if (!API_KEY || !CX) {
-    throw new Error('Google CSE env vars missing (GOOGLE_API_KEY/GOOGLE_CX)')
-  }
   const q = buildQuery(topic)
   const num = Math.min(Math.max(opts?.limit ?? 8, 1), 10)
-  const url = new URL('https://www.googleapis.com/customsearch/v1')
-  url.searchParams.set('key', API_KEY)
-  url.searchParams.set('cx', CX)
-  url.searchParams.set('q', q)
-  url.searchParams.set('num', String(num))
-  url.searchParams.set('gl', 'in')
-  url.searchParams.set('lr', 'lang_en')
-  url.searchParams.set('safe', 'active')
-  const res = await fetchWithRetry(url.toString())
-  const data = await res.json() as { items?: SearchItem[] }
-  const items = (data.items ?? [])
-  let results: NewsResult[] = items.map((it) => ({
-    title: it.title,
-    url: it.link,
-    summary: it.snippet,
-    source: it.displayLink,
-    image: extractImage(it.pagemap),
-    publishedAt: extractDate(it.pagemap),
-  }))
+  const results = await fetchWorldNews(q, num)
   if (opts?.recentDays) {
     const cutoff = Date.now() - opts.recentDays * 24 * 60 * 60 * 1000
-    results = results.filter(r => r.publishedAt ? Date.parse(r.publishedAt) >= cutoff : false)
+    return results.filter(r => r.publishedAt ? Date.parse(r.publishedAt) >= cutoff : false)
   }
   return results
 }
@@ -111,82 +89,53 @@ function extractDate(pagemap: Record<string, unknown> | undefined): string | und
 export async function fetchCombinedNews(opts?: { limit?: number; recentDays?: number }) {
   const limit = opts?.limit ?? 12
   const recentDays = opts?.recentDays ?? 7
-  const perTopic = Math.ceil(limit / 2)
-
-  // Simple combined fetch: pull two topic lists and merge/dedupe
-  const [oldAge, orphans] = await Promise.all([
-    (async () => {
-      try { return await fetchNews('old-age', { limit: perTopic, recentDays }) } catch { return [] as NewsResult[] }
-    })(),
-    (async () => {
-      try { return await fetchNews('orphans', { limit: perTopic, recentDays }) } catch { return [] as NewsResult[] }
-    })(),
-  ])
-
-  let merged: NewsResult[] = [...(oldAge || []), ...(orphans || [])]
-
-  // Filter by recentDays
-  if (recentDays) {
-    const cutoff = Date.now() - recentDays * 24 * 60 * 60 * 1000
-    merged = merged.filter(r => r.publishedAt ? Date.parse(r.publishedAt) >= cutoff : false)
+  
+  // Use WorldNews unified query (Google CSE fallback removed per request)
+  if (WORLD_NEWS_KEY) {
+    // Karnataka/India focused query for admin front page "Needy Care News"
+    const queries = [
+      'India orphanage elderly NGO charity',
+      'Karnataka Bengaluru orphan elderly welfare',
+      'India child welfare old age home donation',
+    ]
+    
+    for (const query of queries) {
+      try {
+        let results = await fetchWorldNews(query, limit * 2) // fetch more, filter later
+        console.log(`[news] fetchCombinedNews: query="${query}" returned ${results.length} items`)
+        
+        if (recentDays && results.length > 0) {
+          const cutoff = Date.now() - recentDays * 24 * 60 * 60 * 1000
+          // Keep items with valid dates within range, OR items without dates (give benefit of doubt)
+          const filtered = results.filter(r => {
+            if (!r.publishedAt) return true // keep if no date
+            const parsed = Date.parse(r.publishedAt)
+            return !isNaN(parsed) && parsed >= cutoff
+          })
+          if (filtered.length > 0) {
+            return filtered.slice(0, limit)
+          }
+        }
+        
+        if (results.length > 0) return results.slice(0, limit)
+      } catch (e) {
+        console.warn('[news] fetchCombinedNews: WorldNews failed for query:', query, e)
+      }
+    }
   }
-
-  const dedup = new Map<string, NewsResult>()
-  for (const item of merged) {
-    if (item.url && !dedup.has(item.url)) dedup.set(item.url, item)
-  }
-
-  return Array.from(dedup.values()).sort((a, b) => {
-    const ta = a.publishedAt ? Date.parse(a.publishedAt) : 0
-    const tb = b.publishedAt ? Date.parse(b.publishedAt) : 0
-    return tb - ta
-  }).slice(0, limit)
+  
+  return []
 }
 
 export async function fetchEmergencyNews(opts?: { limit?: number; recentDays?: number }) {
-  if (!API_KEY || !CX) {
-    // if Google not configured, we allow alternative world news API if available
-    if (!WORLD_NEWS_KEY) throw new Error('Google CSE env vars missing (GOOGLE_API_KEY/GOOGLE_CX) and WORLD_NEWS_API_KEY not set')
-  }
   const limit = Math.min(Math.max(opts?.limit ?? 10, 1), 10)
   const recentDays = opts?.recentDays ?? 7
   const query = 'Karnataka OR Bengaluru OR Bangalore OR India (orphan OR orphanage OR "old age home" OR elderly OR "medical emergency" OR "child welfare" OR needy OR "education" OR "hospital" OR "food")'
   let results: NewsResult[] = []
-
-  // Try Google CSE first (if configured)
-  if (API_KEY && CX) {
-    try {
-      const url = new URL('https://www.googleapis.com/customsearch/v1')
-      url.searchParams.set('key', API_KEY)
-      url.searchParams.set('cx', CX)
-      url.searchParams.set('q', query)
-      url.searchParams.set('num', String(limit))
-      url.searchParams.set('gl', 'in')
-      url.searchParams.set('lr', 'lang_en')
-      url.searchParams.set('safe', 'active')
-      const res = await fetchWithRetry(url.toString())
-      const data = await res.json() as { items?: SearchItem[] }
-      results = (data.items ?? []).map(it => ({
-        title: it.title,
-        url: it.link,
-        summary: it.snippet,
-        source: it.displayLink,
-        image: extractImage(it.pagemap),
-        publishedAt: extractDate(it.pagemap),
-      }))
-    } catch (e) {
-      console.warn('[news] fetchEmergencyNews: Google CSE failed:', (e as Error).message)
-    }
-  }
-
-  // If Google returned nothing, try WorldNews API as a fallback (if configured)
-  if ((results.length === 0) && WORLD_NEWS_KEY) {
-    try {
-      const w = await fetchWorldNews(query, limit)
-      results = w
-    } catch (e) {
-      console.warn('[news] fetchEmergencyNews: WorldNews API failed:', (e as Error).message)
-    }
+  try {
+    results = await fetchWorldNews(query, limit)
+  } catch (e) {
+    console.warn('[news] fetchEmergencyNews: WorldNews API failed:', (e as Error).message)
   }
   const cutoff = Date.now() - recentDays * 24 * 60 * 60 * 1000
   results = results.filter(r => r.publishedAt ? Date.parse(r.publishedAt) >= cutoff : false)
