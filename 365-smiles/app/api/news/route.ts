@@ -155,16 +155,16 @@ export async function GET(request: Request) {
       return NextResponse.json({ ok: true, kind, count: mapped.length, data: mapped, source: 'supabase', debug })
     }
     if (kind === 'emergency') {
-      let cseData: NewsResult[] | null = null
-      let cseError: string | undefined
+      let worldData: NewsResult[] | null = null
+      let worldError: string | undefined
       try {
         const data = await fetchEmergencyNews({ limit, recentDays: 7 })
-        cseData = data
+        worldData = data
       } catch (e) {
-        cseError = (e as Error)?.message || String(e)
+        worldError = (e as Error)?.message || String(e)
       }
-      if (cseData && cseData.length > 0) {
-        return NextResponse.json({ ok: true, kind, count: cseData.length, data: cseData, debug: { cse: 'ok' } })
+      if (worldData && worldData.length > 0) {
+        return NextResponse.json({ ok: true, kind, count: worldData.length, data: worldData, source: 'worldnews', debug: { worldnews: 'ok', count: worldData.length } })
       }
 
       let rows: EmergencyNeedRow[] | null = null
@@ -192,14 +192,14 @@ export async function GET(request: Request) {
       if (!mapped.length) {
         const dummy = await getDummyNews(limit)
         const debug: Record<string, unknown> = {
-          cse: { ok: false, note: 'Google CSE removed' },
+          worldnews: { ok: false, error: worldError },
           supabaseEmergency: { ok: Array.isArray(rows), count: (rows || []).length, error: supabaseErr },
           dummy: { used: true, count: dummy.length }
         }
-        return NextResponse.json({ ok: true, kind, count: dummy.length, data: dummy, debug, note: 'Dummy news used (emergency fallback).' })
+        return NextResponse.json({ ok: true, kind, count: dummy.length, data: dummy, source: 'dummy', debug, note: 'Dummy news used (emergency fallback).' })
       }
-      const debug: Record<string, unknown> = { cse: { ok: false, note: 'Google CSE removed' }, supabase: { ok: Array.isArray(rows), count: (rows || []).length, error: supabaseErr } }
-      return NextResponse.json({ ok: true, kind, count: mapped.length, data: mapped, debug })
+      const debug: Record<string, unknown> = { worldnews: { ok: false, error: worldError }, supabase: { ok: Array.isArray(rows), count: (rows || []).length, error: supabaseErr } }
+      return NextResponse.json({ ok: true, kind, count: mapped.length, data: mapped, source: 'supabase', debug })
     }
     // fallback single-topic behaviour
     const topicParam = searchParams.get('topic')

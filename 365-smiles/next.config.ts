@@ -1,6 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig = {
+  // Avoid OneDrive file locks on .next by using a custom distDir
+  distDir: '.next-dev',
   images: {
     remotePatterns: [
       {

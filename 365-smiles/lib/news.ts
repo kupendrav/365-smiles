@@ -1,10 +1,3 @@
-type SearchItem = {
-  title: string
-  link: string
-  snippet: string
-  displayLink?: string
-  pagemap?: Record<string, unknown>
-}
 
 export type NewsResult = {
   title: string
@@ -56,35 +49,6 @@ export async function fetchNews(topic: 'old-age' | 'orphans', opts?: { limit?: n
   return results
 }
 
-function extractImage(pagemap: Record<string, unknown> | undefined): string | undefined {
-  try {
-    const metatags = pagemap?.metatags as Array<Record<string, string>> | undefined
-    const cseImage = pagemap?.cse_image as Array<Record<string, string>> | undefined
-    const og = metatags?.[0]?.['og:image'] || cseImage?.[0]?.src
-    if (typeof og === 'string' && og.startsWith('http')) return og
-  } catch {}
-  return undefined
-}
-
-function extractDate(pagemap: Record<string, unknown> | undefined): string | undefined {
-  try {
-    const metatags = pagemap?.metatags as Array<Record<string, string>> | undefined
-    const meta = metatags?.[0] || {}
-    const candidates = [
-      meta['article:published_time'],
-      meta['og:published_time'],
-      meta['og:updated_time'],
-      meta['datePublished'],
-      meta['dateModified'],
-      meta['pubdate'],
-    ].filter(Boolean)
-    for (const c of candidates) {
-      const d = new Date(c)
-      if (!isNaN(d.getTime())) return d.toISOString()
-    }
-  } catch {}
-  return undefined
-}
 
 export async function fetchCombinedNews(opts?: { limit?: number; recentDays?: number }) {
   const limit = opts?.limit ?? 12
@@ -101,7 +65,7 @@ export async function fetchCombinedNews(opts?: { limit?: number; recentDays?: nu
     
     for (const query of queries) {
       try {
-        let results = await fetchWorldNews(query, limit * 2) // fetch more, filter later
+        const results = await fetchWorldNews(query, limit * 2) // fetch more, filter later
         console.log(`[news] fetchCombinedNews: query="${query}" returned ${results.length} items`)
         
         if (recentDays && results.length > 0) {
