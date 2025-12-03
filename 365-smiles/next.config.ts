@@ -1,8 +1,12 @@
 import type { NextConfig } from "next";
 
-const nextConfig = {
-  // Avoid OneDrive file locks on .next by using a custom distDir
-  distDir: '.next-dev',
+// Use default `.next` on CI/Vercel. Keep `.next-dev` only for local builds
+const isCI = !!process.env.CI;
+const isVercel = !!process.env.VERCEL;
+const useCustomDist = !(isCI || isVercel);
+
+const nextConfig: NextConfig = {
+  ...(useCustomDist ? { distDir: ".next-dev" } : {}),
   images: {
     remotePatterns: [
       {
