@@ -137,6 +137,12 @@ export default function AdminFrontpage() {
             >
               Donation Summary
             </button>
+            <button
+              onClick={() => router.push("/admin/institution")}
+              className="px-4 py-2 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 transition hover:scale-105 transform"
+            >
+              🏢 Charities
+            </button>
           </div>
         </div>
       </nav>
