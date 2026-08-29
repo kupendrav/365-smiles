@@ -1,0 +1,6 @@
+interface:
+  display_name: "365 Smiles"
+  short_description: "Repo-specific patterns and workflows for 365-smiles"
+  default_prompt: "Use the 365-smiles repo skill to follow existing architecture, testing, and workflow conventions."
+policy:
+  allow_implicit_invocation: true

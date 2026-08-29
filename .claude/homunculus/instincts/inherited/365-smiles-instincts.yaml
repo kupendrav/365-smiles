@@ -1,0 +1,127 @@
+# Instincts generated from https://github.com/kupendrav/365-smiles
+# Generated: 2026-08-29T20:39:21.327Z
+# Version: 2.0
+# NOTE: This file supplements (does not replace) any existing curated instincts.
+# High-confidence manually curated instincts should be preserved alongside these.
+
+---
+id: 365-smiles-commit-conventional
+trigger: "when writing a commit message"
+confidence: 0.85
+domain: git
+source: repo-analysis
+source_repo: https://github.com/kupendrav/365-smiles
+---
+
+# 365 Smiles Commit Conventional
+
+## Action
+
+Use conventional commit format with prefixes: fix
+
+## Evidence
+
+- 1 commits analyzed
+- Detected conventional commit pattern
+- Examples: fix: resolve all 40 project issues - security, architecture, bugs, performance, code quality
+
+---
+id: 365-smiles-commit-length
+trigger: "when writing a commit message"
+confidence: 0.6
+domain: git
+source: repo-analysis
+source_repo: https://github.com/kupendrav/365-smiles
+---
+
+# 365 Smiles Commit Length
+
+## Action
+
+Write moderate-length commit messages (~92 characters)
+
+## Evidence
+
+- Average commit message length: 92 chars
+- Based on 1 commits
+
+---
+id: 365-smiles-naming-files
+trigger: "when creating a new file"
+confidence: 0.8
+domain: code-style
+source: repo-analysis
+source_repo: https://github.com/kupendrav/365-smiles
+---
+
+# 365 Smiles Naming Files
+
+## Action
+
+Use camelCase naming convention
+
+## Evidence
+
+- Analyzed file naming patterns in repository
+- Dominant pattern: camelCase
+
+---
+id: 365-smiles-import-alias
+trigger: "when importing modules"
+confidence: 0.85
+domain: code-style
+source: repo-analysis
+source_repo: https://github.com/kupendrav/365-smiles
+---
+
+# 365 Smiles Import Alias
+
+## Action
+
+Use path aliases (@/, ~/) instead of relative imports
+
+## Evidence
+
+- Import analysis shows alias pattern
+- Example: import { x } from '@/lib/x'
+
+---
+id: 365-smiles-export-style
+trigger: "when exporting from a module"
+confidence: 0.7
+domain: code-style
+source: repo-analysis
+source_repo: https://github.com/kupendrav/365-smiles
+---
+
+# 365 Smiles Export Style
+
+## Action
+
+Prefer default exports
+
+## Evidence
+
+- Export pattern analysis
+- Dominant style: default
+
+---
+id: 365-smiles-test-separate
+trigger: "when writing tests"
+confidence: 0.8
+domain: testing
+source: repo-analysis
+source_repo: https://github.com/kupendrav/365-smiles
+---
+
+# 365 Smiles Test Separate
+
+## Action
+
+Place tests in the tests/ or __tests__/ directory, mirroring src structure
+
+## Evidence
+
+- Separate test directory pattern detected
+- Tests live in dedicated test folders
+
