@@ -1,8 +1,9 @@
-"use client";
+'use client';
 
-import { useEffect, useMemo, useState } from "react";
-import { createSupabaseClient } from "@/lib/supabaseClient";
-import { useRouter } from "next/navigation";
+import { useEffect, useMemo, useState } from 'react';
+import { createSupabaseClient } from '@/lib/supabaseClient';
+import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 import {
   BarChart,
   Bar,
@@ -11,24 +12,16 @@ import {
   Tooltip,
   ResponsiveContainer,
   Cell,
-} from "recharts";
+} from 'recharts';
 
 const PALETTE = [
-  "#60a5fa", // blue
-  "#34d399", // green
-  "#fbbf24", // amber
-  "#f87171", // red
-  "#38bdf8", // sky
-  "#a78bfa", // violet
-  "#f472b6", // pink
-  "#f59e0b", // orange
-  "#10b981", // emerald
-  "#6366f1", // indigo
+  '#60a5fa', '#34d399', '#fbbf24', '#f87171', '#38bdf8',
+  '#a78bfa', '#f472b6', '#f59e0b', '#10b981', '#6366f1',
 ];
 
 type LogRow = {
   id: string;
-  date: string; // ISO date
+  date: string;
   home_name: string;
   amount: number | string;
   notes?: string | null;
@@ -43,15 +36,15 @@ export default function DonationSummaryPage() {
   const [logs, setLogs] = useState<LogRow[]>([]);
   const [grouped, setGrouped] = useState<BarDatum[]>([]);
   const [loading, setLoading] = useState(true);
-  const [totalDonated, setTotalDonated] = useState(0); // If separate metric exists, compute accordingly.
+  const [totalDonated, setTotalDonated] = useState(0);
 
   useEffect(() => {
     let alive = true;
     (async () => {
       const { data, error } = await supabase
-        .from("donation-logs")
-        .select("id,date,home_name,amount,notes")
-        .order("date", { ascending: false });
+        .from('donation-logs')
+        .select('id,date,home_name,amount,notes')
+        .order('date', { ascending: false });
 
       if (!alive) return;
 
@@ -59,22 +52,30 @@ export default function DonationSummaryPage() {
         const rows = (data as LogRow[]).map((r) => ({
           ...r,
           amount:
-            typeof r.amount === "string" ? parseFloat(r.amount) : (r.amount as number),
+            typeof r.amount === 'string'
+              ? parseFloat(r.amount)
+              : (r.amount as number),
         }));
         setLogs(rows);
 
-        // Group by home_name
         const totals: Record<string, number> = {};
         rows.forEach((log) => {
-          const amt = typeof log.amount === "number" ? log.amount : 0;
-          totals[log.home_name] = (totals[log.home_name] || 0) + (isNaN(amt) ? 0 : amt);
+          const amt = typeof log.amount === 'number' ? log.amount : 0;
+          totals[log.home_name] =
+            (totals[log.home_name] || 0) + (isNaN(amt) ? 0 : amt);
         });
 
-        const barData = Object.entries(totals).map(([name, value]) => ({ name, value }));
+        const barData = Object.entries(totals).map(([name, value]) => ({
+          name,
+          value,
+        }));
         setGrouped(barData);
 
-        const sumAll = rows.reduce((acc, r) => acc + ((r.amount as number) || 0), 0);
-        setTotalDonated(sumAll); // If you track “donated” differently, replace this with your logic.
+        const sumAll = rows.reduce(
+          (acc, r) => acc + ((r.amount as number) || 0),
+          0
+        );
+        setTotalDonated(sumAll);
       }
 
       setLoading(false);
@@ -85,37 +86,45 @@ export default function DonationSummaryPage() {
     };
   }, [supabase]);
 
-
   const handleDelete = async (id: string) => {
-    if (!confirm("Are you sure you want to delete this donation log?")) return;
-    const { error } = await supabase.from("donation-logs").delete().eq("id", id);
+    if (!confirm('Are you sure you want to delete this donation log?'))
+      return;
+    const { error } = await supabase
+      .from('donation-logs')
+      .delete()
+      .eq('id', id);
     if (!error) {
-      setLogs((prev) => prev.filter((log) => log.id !== id));
-      // Also update grouped and totals
-      const removed = logs.find((l) => l.id === id);
-      if (removed) {
-        const newLogs = logs.filter((l) => l.id !== id);
-        const totals: Record<string, number> = {};
-        newLogs.forEach((log) => {
-          const amt = typeof log.amount === "number" ? log.amount : 0;
-          totals[log.home_name] = (totals[log.home_name] || 0) + (isNaN(amt) ? 0 : amt);
-        });
-        setGrouped(Object.entries(totals).map(([name, value]) => ({ name, value })));
-        const sumAll = newLogs.reduce((acc, r) => acc + ((r.amount as number) || 0), 0);
-        setTotalDonated(sumAll);
-      }
+      toast.success('Donation log deleted');
+      const newLogs = logs.filter((l) => l.id !== id);
+      setLogs(newLogs);
+
+      const totals: Record<string, number> = {};
+      newLogs.forEach((log) => {
+        const amt = typeof log.amount === 'number' ? log.amount : 0;
+        totals[log.home_name] =
+          (totals[log.home_name] || 0) + (isNaN(amt) ? 0 : amt);
+      });
+      setGrouped(
+        Object.entries(totals).map(([name, value]) => ({ name, value }))
+      );
+      const sumAll = newLogs.reduce(
+        (acc, r) => acc + ((r.amount as number) || 0),
+        0
+      );
+      setTotalDonated(sumAll);
+    } else {
+      toast.error('Failed to delete donation log');
     }
   };
 
   return (
     <div className="min-h-screen w-full bg-gradient-to-br from-gray-50 via-white to-gray-100">
-      {/* Header with back arrow and title */}
       <header className="sticky top-0 z-10 bg-white/80 backdrop-blur border-b border-gray-200">
         <div className="mx-auto max-w-6xl px-4 py-3 flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <button
               aria-label="Back to Admin Frontpage"
-              onClick={() => router.push("/admin/frontpage")}
+              onClick={() => router.push('/admin/frontpage')}
               className="h-10 w-10 grid place-items-center rounded-full bg-gray-900 text-white hover:bg-gray-800 active:scale-95 transition"
               title="Back"
             >
@@ -130,12 +139,13 @@ export default function DonationSummaryPage() {
 
       <main className="mx-auto max-w-6xl px-4 py-6 md:py-8 space-y-6">
         {loading ? (
-          <p className="text-gray-700 text-center">Loading summary...</p>
+          <div className="space-y-4">
+            <div className="h-64 bg-gray-200 rounded-2xl animate-pulse" />
+            <div className="h-48 bg-gray-200 rounded-2xl animate-pulse" />
+          </div>
         ) : (
           <>
-            {/* Top section: 70% chart (left) + 30% stat cards (right) */}
             <section className="grid grid-cols-1 lg:grid-cols-10 gap-6">
-              {/* Chart */}
               <div className="lg:col-span-7 rounded-2xl border border-white/30 bg-white/40 backdrop-blur-xl shadow-xl p-4 md:p-6">
                 <h2 className="text-lg font-semibold text-gray-800 mb-3">
                   Total Donations by Trust
@@ -147,15 +157,18 @@ export default function DonationSummaryPage() {
                       <YAxis stroke="#6b7280" />
                       <Tooltip
                         contentStyle={{
-                          backgroundColor: "#111827",
-                          borderColor: "#374151",
-                          color: "#fff",
+                          backgroundColor: '#111827',
+                          borderColor: '#374151',
+                          color: '#fff',
                         }}
-                        itemStyle={{ color: "#fff" }}
+                        itemStyle={{ color: '#fff' }}
                       />
                       <Bar dataKey="value">
-                        {grouped.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={PALETTE[index % PALETTE.length]} />
+                        {grouped.map((_, index) => (
+                          <Cell
+                            key={`cell-${index}`}
+                            fill={PALETTE[index % PALETTE.length]}
+                          />
                         ))}
                       </Bar>
                     </BarChart>
@@ -163,23 +176,23 @@ export default function DonationSummaryPage() {
                 </div>
               </div>
 
-              {/* Right stats (only donated metric retained) */}
               <div className="lg:col-span-3 flex flex-col gap-6">
                 <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow">
                   <div className="text-sm text-gray-500">Total Donated</div>
                   <div className="text-2xl font-extrabold text-gray-900 mt-1">
-                    ₹ {totalDonated.toLocaleString("en-IN")}
+                    ₹ {totalDonated.toLocaleString('en-IN')}
                   </div>
                   <p className="text-xs text-gray-500 mt-1">
-                    If you track a separate “donated” metric, compute it here.
+                    Sum of all logged trust donations
                   </p>
                 </div>
               </div>
             </section>
 
-            {/* Logs table */}
             <section className="rounded-2xl border border-white/30 bg-white/40 backdrop-blur-xl shadow-xl p-4 md:p-6">
-              <h2 className="text-lg font-semibold text-gray-800 mb-3">All Donation Logs</h2>
+              <h2 className="text-lg font-semibold text-gray-800 mb-3">
+                All Donation Logs
+              </h2>
               <div className="overflow-x-auto">
                 <table className="w-full text-sm text-gray-800">
                   <thead className="bg-gray-100 text-gray-700">
@@ -193,20 +206,23 @@ export default function DonationSummaryPage() {
                   </thead>
                   <tbody>
                     {logs.map((log) => (
-                      <tr key={log.id} className="border-t border-gray-200 hover:bg-white/60">
+                      <tr
+                        key={log.id}
+                        className="border-t border-gray-200 hover:bg-white/60"
+                      >
                         <td className="p-2">
                           {new Date(log.date).toLocaleDateString()}
                         </td>
                         <td className="p-2">{log.home_name}</td>
                         <td className="p-2">
-                          ₹{" "}
+                          ₹{' '}
                           {(
-                            typeof log.amount === "number"
+                            typeof log.amount === 'number'
                               ? log.amount
                               : parseFloat(String(log.amount))
-                          ).toLocaleString("en-IN")}
+                          ).toLocaleString('en-IN')}
                         </td>
-                        <td className="p-2">{log.notes || "-"}</td>
+                        <td className="p-2">{log.notes || '-'}</td>
                         <td className="p-2">
                           <button
                             onClick={() => handleDelete(log.id)}

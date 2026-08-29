@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
+import { toast } from "sonner";
 
 export function MedicineSupportClient() {
   const params = useSearchParams();
@@ -60,7 +61,7 @@ export function MedicineSupportClient() {
         return;
       }
 
-      alert("Thank you! Your certificate will be emailed shortly.");
+      toast.success("Thank you! Your certificate will be emailed shortly.");
       router.push("/thank-you");
     } catch (err) {
       setError("Network error: " + (err as Error).message);
@@ -101,7 +102,7 @@ export function MedicineSupportClient() {
             onSubmit={handleSubmit}
             className="bg-black/70 p-8 rounded-xl max-w-xl mx-auto shadow-lg"
           >
-            {error && <p className="mb-4 text-red-400 font-semibold">{error}</p>}
+            {error && <p className="mb-4 text-red-400 font-semibold" role="alert">{error}</p>}
 
             {/* QR Code Image */}
             <div className="mb-6 flex justify-center">
@@ -115,6 +116,7 @@ export function MedicineSupportClient() {
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 required
+                maxLength={100}
                 disabled={submitting}
                 className="w-full rounded border border-gray-600 px-3 py-2 text-white"
               />
@@ -127,6 +129,7 @@ export function MedicineSupportClient() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
+                maxLength={254}
                 disabled={submitting}
                 className="w-full rounded border border-gray-600 px-3 py-2 text-white"
               />
@@ -149,6 +152,7 @@ export function MedicineSupportClient() {
               <span className="block mb-1 font-semibold">Message (Optional)</span>
               <textarea
                 rows={3}
+                maxLength={500}
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
                 disabled={submitting}

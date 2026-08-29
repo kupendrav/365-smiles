@@ -1,8 +1,9 @@
-"use client";
+'use client';
 
-import Image from "next/image";
-import { useSearchParams, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import Image from 'next/image';
+import { useSearchParams, useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
+import { toast } from 'sonner';
 
 type CheckResult = {
   exists: boolean;
@@ -11,7 +12,7 @@ type CheckResult = {
 
 export function DonateClient() {
   const params = useSearchParams();
-  const date = params.get("date")!;
+  const date = params.get('date') ?? '';
   const router = useRouter();
 
   // Block state
@@ -19,17 +20,20 @@ export function DonateClient() {
   const [checking, setChecking] = useState(true);
 
   // Form state
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [amount, setAmount] = useState("");
-  const [refId, setRefId] = useState("");
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [amount, setAmount] = useState('');
+  const [refId, setRefId] = useState('');
   const [file, setFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState<string | null>(null);
 
   // Check if date already sponsored
   useEffect(() => {
-    if (!date) return;
+    if (!date) {
+      setChecking(false);
+      return;
+    }
     fetch(`/api/check-donation?date=${date}`)
       .then((res) => res.json())
       .then((res: CheckResult) => setBlocked(res))
@@ -49,7 +53,9 @@ export function DonateClient() {
           className="fixed inset-0 z-0 h-full w-full object-cover"
         />
         <div className="absolute inset-0 bg-black/50" />
-        <p className="relative z-10 text-center text-lg md:text-xl">Checking availability…</p>
+        <p className="relative z-10 text-center text-lg md:text-xl">
+          Checking availability…
+        </p>
       </div>
     );
   }
@@ -72,12 +78,13 @@ export function DonateClient() {
               📅 {date} is Already Sponsored
             </h1>
             <p className="text-white/80 mb-6">
-              This day is in <span className="font-semibold">{blocked.donorName}</span>&apos;s birthday celebration!
-              Please pick another date.
+              This day is in{' '}
+              <span className="font-semibold">{blocked.donorName}</span>
+              &apos;s birthday celebration! Please pick another date.
             </p>
             <button
               className="inline-flex items-center justify-center rounded-full bg-gradient-to-r from-pink-500 to-fuchsia-600 px-6 py-2.5 font-semibold text-white hover:opacity-95 active:scale-[0.99] transition"
-              onClick={() => router.push("/calendar")}
+              onClick={() => router.push('/calendar')}
             >
               Back to Calendar
             </button>
@@ -90,36 +97,52 @@ export function DonateClient() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErr(null);
+
+    // Client-side validation
+    if (!name.trim() || !email.trim() || !amount.trim()) {
+      setErr('Please fill in all required fields.');
+      return;
+    }
+    const amt = Number(amount);
+    if (isNaN(amt) || amt <= 0) {
+      setErr('Please enter a valid positive amount.');
+      return;
+    }
+    if (!file) {
+      setErr('Please upload a payment screenshot.');
+      return;
+    }
+
     setLoading(true);
 
     const formData = new FormData();
-    formData.append("name", name.trim());
-    formData.append("email", email.trim());
-    formData.append("amount", amount.trim());
-    formData.append("refId", refId.trim());
-    if (file) formData.append("file", file);
-    formData.append("date", date);
+    formData.append('name', name.trim());
+    formData.append('email', email.trim());
+    formData.append('amount', amount.trim());
+    formData.append('refId', refId.trim());
+    formData.append('file', file);
+    formData.append('date', date);
 
     try {
-      const res = await fetch("/api/submit-donation", {
-        method: "POST",
+      const res = await fetch('/api/submit-donation', {
+        method: 'POST',
         body: formData,
       });
       const data = await res.json();
       setLoading(false);
 
       if (!res.ok) {
-        setErr(data?.error || "Something went wrong.");
+        setErr(data?.error || 'Something went wrong.');
         return;
       }
 
-      // success
-      alert("Thank you! Your certificate will be emailed shortly.");
-      router.push("/thank-you");
-    } catch (e: Error | unknown) {
+      toast.success('Thank you! Your certificate will be emailed shortly.');
+      router.push('/thank-you');
+    } catch (e: unknown) {
       setLoading(false);
-      const errorMessage = e instanceof Error ? e.message : 'Unknown error';
-      setErr("Network error: " + errorMessage);
+      const errorMessage =
+        e instanceof Error ? e.message : 'Unknown error';
+      setErr('Network error: ' + errorMessage);
     }
   };
 
@@ -134,7 +157,6 @@ export function DonateClient() {
         playsInline
         className="fixed inset-0 z-0 h-full w-full object-cover"
       />
-      {/* Subtle gradient overlay for readability */}
       <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/55 to-black/70" />
 
       <main className="relative z-10 max-w-5xl mx-auto px-6 pt-24 pb-12">
@@ -144,7 +166,8 @@ export function DonateClient() {
             Donate for {date}
           </h1>
           <p className="text-white/80 mt-1">
-            Scan the code, make the UPI payment, and share the details to receive your certificate.
+            Scan the code, make the UPI payment, and share the details to
+            receive your certificate.
           </p>
         </div>
 
@@ -153,7 +176,13 @@ export function DonateClient() {
           {/* Left: QR & tips */}
           <div className="rounded-2xl bg-white/10 backdrop-blur-xl border border-white/15 p-6 shadow-2xl">
             <div className="flex flex-col items-center">
-              <Image src="/qr.png" alt="UPI QR" width={220} height={220} className="rounded-lg" />
+              <Image
+                src="/qr.png"
+                alt="UPI QR Code for payment"
+                width={220}
+                height={220}
+                className="rounded-lg"
+              />
               <p className="mt-3 font-semibold">Scan and Pay</p>
               <ul className="mt-4 text-sm text-white/80 space-y-1.5">
                 <li>• Use any UPI app to complete the payment.</li>
@@ -165,33 +194,43 @@ export function DonateClient() {
 
           {/* Right: Form */}
           <div className="rounded-2xl bg-white/10 backdrop-blur-xl border border-white/15 p-6 shadow-2xl">
-            <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+            <form
+              onSubmit={handleSubmit}
+              className="flex flex-col gap-4"
+              noValidate
+            >
               <label className="block">
-                <span className="block text-sm mb-1">Your Name</span>
+                <span className="block text-sm mb-1">Your Name *</span>
                 <input
                   type="text"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   required
+                  maxLength={100}
                   className="w-full rounded-lg bg-black/40 border border-white/15 px-3 py-2 outline-none focus:ring-2 focus:ring-pink-500"
                   placeholder="Full Name"
                 />
               </label>
 
               <label className="block">
-                <span className="block text-sm mb-1">Email Address</span>
+                <span className="block text-sm mb-1">
+                  Email Address *
+                </span>
                 <input
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
+                  maxLength={254}
                   className="w-full rounded-lg bg-black/40 border border-white/15 px-3 py-2 outline-none focus:ring-2 focus:ring-pink-500"
                   placeholder="you@example.com"
                 />
               </label>
 
               <label className="block">
-                <span className="block text-sm mb-1">Amount Donated (INR)</span>
+                <span className="block text-sm mb-1">
+                  Amount Donated (INR) *
+                </span>
                 <input
                   type="number"
                   min={1}
@@ -204,19 +243,23 @@ export function DonateClient() {
               </label>
 
               <label className="block">
-                <span className="block text-sm mb-1">UPI Reference ID</span>
+                <span className="block text-sm mb-1">
+                  UPI Reference ID
+                </span>
                 <input
                   type="text"
                   value={refId}
                   onChange={(e) => setRefId(e.target.value)}
-                  required
+                  maxLength={100}
                   className="w-full rounded-lg bg-black/40 border border-white/15 px-3 py-2 outline-none focus:ring-2 focus:ring-pink-500"
                   placeholder="UPI Ref / UTR"
                 />
               </label>
 
               <label className="block">
-                <span className="block text-sm mb-1">Upload Payment Screenshot (optional)</span>
+                <span className="block text-sm mb-1">
+                  Upload Payment Screenshot *
+                </span>
                 <input
                   type="file"
                   accept="image/*"
@@ -226,7 +269,10 @@ export function DonateClient() {
               </label>
 
               {err && (
-                <p className="text-sm text-rose-300 bg-rose-500/10 border border-rose-400/30 rounded-lg px-3 py-2">
+                <p
+                  className="text-sm text-rose-300 bg-rose-500/10 border border-rose-400/30 rounded-lg px-3 py-2"
+                  role="alert"
+                >
                   {err}
                 </p>
               )}
@@ -236,12 +282,12 @@ export function DonateClient() {
                 disabled={loading}
                 className="mt-2 w-full rounded-full bg-gradient-to-r from-pink-500 to-fuchsia-600 py-2.5 font-semibold hover:opacity-95 active:scale-[0.99] transition disabled:opacity-60"
               >
-                {loading ? "Submitting..." : "Submit & Receive Certificate"}
+                {loading ? 'Submitting...' : 'Submit & Receive Certificate'}
               </button>
 
               <button
                 type="button"
-                onClick={() => router.push("/calendar")}
+                onClick={() => router.push('/calendar')}
                 className="w-full rounded-full border border-white/20 bg-white/5 py-2.5 font-semibold text-white/90 hover:bg-white/10 active:scale-[0.99] transition"
               >
                 Back to Calendar

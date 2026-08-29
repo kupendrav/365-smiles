@@ -1,19 +1,20 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
-import Image from "next/image";
+import { useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import Image from 'next/image';
+import { toast } from 'sonner';
 
 export function EducationClient() {
   const params = useSearchParams();
-  const date = params.get("date") ?? "";
+  const date = params.get('date') ?? '';
   const router = useRouter();
 
   const [showForm, setShowForm] = useState(false);
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [amount, setAmount] = useState("");
-  const [message, setMessage] = useState("");
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [amount, setAmount] = useState('');
+  const [message, setMessage] = useState('');
   const [file, setFile] = useState<File | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -23,47 +24,47 @@ export function EducationClient() {
     setError(null);
 
     if (!name.trim() || !email.trim() || !amount.trim()) {
-      setError("Please enter name, email, and amount.");
+      setError('Please enter name, email, and amount.');
       return;
     }
     const amt = Number(amount);
     if (isNaN(amt) || amt <= 0) {
-      setError("Please enter a valid positive amount.");
+      setError('Please enter a valid positive amount.');
       return;
     }
     if (!file) {
-      setError("Please upload a screenshot of the QR code payment.");
+      setError('Please upload a screenshot of the QR code payment.');
       return;
     }
 
     setSubmitting(true);
 
     const formData = new FormData();
-    formData.append("name", name.trim());
-    formData.append("email", email.trim());
-    formData.append("amount", amount.trim());
-    formData.append("type", "education");
-    formData.append("message", message.trim());
-    if (date) formData.append("date", date);
-    formData.append("file", file);
+    formData.append('name', name.trim());
+    formData.append('email', email.trim());
+    formData.append('amount', amount.trim());
+    formData.append('type', 'education');
+    formData.append('message', message.trim());
+    if (date) formData.append('date', date);
+    formData.append('file', file);
 
     try {
-      const res = await fetch("/api/public-donations", {
-        method: "POST",
+      const res = await fetch('/api/public-donations', {
+        method: 'POST',
         body: formData,
       });
       const data = await res.json();
 
       if (!res.ok) {
-        setError(data.error || "Something went wrong.");
+        setError(data.error || 'Something went wrong.');
         setSubmitting(false);
         return;
       }
 
-      alert("Thank you! Your certificate will be emailed shortly.");
-      router.push("/thank-you");
+      toast.success('Thank you! Your certificate will be emailed shortly.');
+      router.push('/thank-you');
     } catch (err) {
-      setError("Network error: " + (err as Error).message);
+      setError('Network error: ' + (err as Error).message);
       setSubmitting(false);
     }
   }
@@ -83,7 +84,10 @@ export function EducationClient() {
           Support Education with 365 Smiles
         </h1>
         <p className="text-lg md:text-xl max-w-3xl mx-auto leading-relaxed mb-12">
-          365 Smiles believes education is the foundation of transformation. We support scholarships for underprivileged children, provide learning devices, offer mentoring, and remove barriers to schooling. Your contribution changes lives through knowledge and opportunity.
+          365 Smiles believes education is the foundation of transformation.
+          We support scholarships for underprivileged children, provide
+          learning devices, offer mentoring, and remove barriers to schooling.
+          Your contribution changes lives through knowledge and opportunity.
         </p>
 
         <button
@@ -92,7 +96,7 @@ export function EducationClient() {
           aria-expanded={showForm}
           aria-controls="donation-form"
         >
-          {showForm ? "Hide Donation Form" : "Donate Now"}
+          {showForm ? 'Hide Donation Form' : 'Donate Now'}
         </button>
 
         {showForm && (
@@ -101,11 +105,20 @@ export function EducationClient() {
             onSubmit={handleSubmit}
             className="bg-black/70 p-8 rounded-xl max-w-xl mx-auto shadow-lg"
           >
-            {error && <p className="mb-4 text-red-400 font-semibold">{error}</p>}
+            {error && (
+              <p className="mb-4 text-red-400 font-semibold" role="alert">
+                {error}
+              </p>
+            )}
 
-            {/* QR Code Image */}
             <div className="mb-6 flex justify-center">
-              <Image src="/qr.png" alt="Scan QR code to pay" width={160} height={160} className="w-40 h-40 object-contain" />
+              <Image
+                src="/qr.png"
+                alt="Scan QR code to pay"
+                width={160}
+                height={160}
+                className="w-40 h-40 object-contain"
+              />
             </div>
 
             <label className="block mb-4 text-left">
@@ -115,6 +128,7 @@ export function EducationClient() {
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 required
+                maxLength={100}
                 disabled={submitting}
                 className="w-full rounded border border-gray-600 px-3 py-2 text-white"
               />
@@ -127,6 +141,7 @@ export function EducationClient() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
+                maxLength={254}
                 disabled={submitting}
                 className="w-full rounded border border-gray-600 px-3 py-2 text-white"
               />
@@ -146,9 +161,12 @@ export function EducationClient() {
             </label>
 
             <label className="block mb-4 text-left">
-              <span className="block mb-1 font-semibold">Message (Optional)</span>
+              <span className="block mb-1 font-semibold">
+                Message (Optional)
+              </span>
               <textarea
                 rows={3}
+                maxLength={500}
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
                 disabled={submitting}
@@ -157,7 +175,9 @@ export function EducationClient() {
             </label>
 
             <label className="block mb-6 text-left">
-              <span className="block mb-1 font-semibold">Upload QR Code Screenshot *</span>
+              <span className="block mb-1 font-semibold">
+                Upload QR Code Screenshot *
+              </span>
               <input
                 type="file"
                 accept="image/*"
@@ -173,7 +193,7 @@ export function EducationClient() {
               disabled={submitting}
               className="w-full rounded-full bg-pink-600 py-3 font-semibold hover:bg-pink-700 transition disabled:opacity-70"
             >
-              {submitting ? "Submitting..." : "Submit Donation"}
+              {submitting ? 'Submitting...' : 'Submit Donation'}
             </button>
           </form>
         )}
