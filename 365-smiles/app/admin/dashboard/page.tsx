@@ -1,8 +1,9 @@
-"use client";
+'use client';
 
-import { useEffect, useMemo, useState } from "react";
-import { createSupabaseClient } from "@/lib/supabaseClient";
-import { useRouter } from "next/navigation";
+import { useEffect, useMemo, useState } from 'react';
+import { createSupabaseClient } from '@/lib/supabaseClient';
+import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 
 type DonationRow = {
   id: string;
@@ -11,7 +12,7 @@ type DonationRow = {
   amount: number | string;
   ref_id?: string | null;
   screenshot?: string | null;
-  status?: "pending" | "verified" | null;
+  status?: 'pending' | 'verified' | null;
   created_at: string;
 };
 
@@ -26,14 +27,13 @@ export default function AdminDashboard() {
   useEffect(() => {
     let alive = true;
     const fetchStats = async (): Promise<void> => {
-      // Pull only necessary columns
       const { data, error } = await supabase
-        .from("donations")
-        .select("id,name,email,amount,ref_id,screenshot,status,created_at")
-        .order("created_at", { ascending: false });
+        .from('donations')
+        .select('id,name,email,amount,ref_id,screenshot,status,created_at')
+        .order('created_at', { ascending: false });
 
       if (error) {
-        console.error("Error fetching donations:", error);
+        console.error('Error fetching donations:', error);
         if (alive) setLoading(false);
         return;
       }
@@ -43,7 +43,8 @@ export default function AdminDashboard() {
       setDonations(rows);
 
       const sum = rows.reduce((acc, d) => {
-        const val = typeof d.amount === "string" ? parseFloat(d.amount) : d.amount;
+        const val =
+          typeof d.amount === 'string' ? parseFloat(d.amount) : d.amount;
         return acc + (isNaN(val) ? 0 : val);
       }, 0);
 
@@ -58,7 +59,7 @@ export default function AdminDashboard() {
       } = await supabase.auth.getUser();
       if (!alive) return;
       if (!user) {
-        router.push("/admin/login");
+        router.push('/admin/login');
         return;
       }
       await fetchStats();
@@ -69,28 +70,37 @@ export default function AdminDashboard() {
     };
   }, [router, supabase]);
 
-  const updateStatus = async (id: string, current: string | null | undefined) => {
-    const newStatus = current === "verified" ? "pending" : "verified";
+  const updateStatus = async (
+    id: string,
+    current: string | null | undefined
+  ) => {
+    const newStatus = current === 'verified' ? 'pending' : 'verified';
 
-    const { error } = await supabase.from("donations").update({ status: newStatus }).eq("id", id);
+    const { error } = await supabase
+      .from('donations')
+      .update({ status: newStatus })
+      .eq('id', id);
 
     if (error) {
-      console.error("Supabase error:", error);
-      alert("Error updating status");
+      console.error('Supabase error:', error);
+      toast.error('Error updating status');
       return;
     }
 
-    // Update UI in place
+    toast.success(`Status updated to ${newStatus}`);
+
     setDonations((prev) =>
-      prev.map((d) => (d.id === id ? { ...d, status: newStatus as "pending" | "verified" } : d))
+      prev.map((d) =>
+        d.id === id
+          ? { ...d, status: newStatus as 'pending' | 'verified' }
+          : d
+      )
     );
 
-    // Recompute total (if you want total only for verified, adjust filter here)
     const sum = donations.reduce((acc, d) => {
-      const val = typeof d.amount === "string" ? parseFloat(d.amount) : d.amount;
+      const val =
+        typeof d.amount === 'string' ? parseFloat(d.amount) : d.amount;
       const amt = isNaN(val) ? 0 : val;
-      // if total should only include verified rows, use:
-      // return acc + ((d.id === id ? newStatus : d.status) === "verified" ? amt : 0);
       return acc + amt;
     }, 0);
     setTotalAmount(sum);
@@ -98,36 +108,44 @@ export default function AdminDashboard() {
 
   return (
     <div className="min-h-screen w-full bg-gradient-to-br from-gray-50 via-white to-gray-100">
-      {/* Top bar with back arrow and stat card on right */}
       <header className="sticky top-0 z-10 bg-white/80 backdrop-blur border-b border-gray-200">
         <div className="mx-auto max-w-6xl px-4 py-3 flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <button
               aria-label="Back to Admin Frontpage"
-              onClick={() => router.push("/admin/frontpage")}
+              onClick={() => router.push('/admin/frontpage')}
               className="h-10 w-10 grid place-items-center rounded-full bg-gray-900 text-white hover:bg-gray-800 active:scale-95 transition"
               title="Back"
             >
               ←
             </button>
-            <h1 className="text-xl md:text-2xl font-extrabold text-gray-900">Donation Dashboard</h1>
+            <h1 className="text-xl md:text-2xl font-extrabold text-gray-900">
+              Donation Dashboard
+            </h1>
           </div>
 
-          {/* Top-right total summary card */}
           <div className="rounded-2xl border border-gray-200 bg-white/80 backdrop-blur px-4 py-3 shadow-sm">
-            <div className="text-xs text-gray-500">Total Donations Received</div>
+            <div className="text-xs text-gray-500">
+              Total Donations Received
+            </div>
             <div className="text-lg md:text-xl font-extrabold text-gray-900">
-              ₹ {totalAmount.toLocaleString("en-IN")}
+              ₹ {totalAmount.toLocaleString('en-IN')}
             </div>
           </div>
         </div>
       </header>
 
       <main className="mx-auto max-w-6xl px-4 py-6 md:py-8">
-        {/* Logs table in a translucent card */}
         <section className="rounded-2xl border border-white/30 bg-white/50 backdrop-blur-xl shadow-xl p-4 md:p-6">
           {loading ? (
-            <p className="text-gray-700">Loading donations...</p>
+            <div className="space-y-3">
+              {Array.from({ length: 5 }).map((_, i) => (
+                <div
+                  key={i}
+                  className="h-12 bg-gray-200 rounded animate-pulse"
+                />
+              ))}
+            </div>
           ) : donations.length === 0 ? (
             <p className="text-gray-700">No donations yet.</p>
           ) : (
@@ -146,21 +164,24 @@ export default function AdminDashboard() {
                 </thead>
                 <tbody>
                   {donations.map((donation) => (
-                    <tr key={donation.id} className="border-b text-black hover:bg-gray-50/70">
+                    <tr
+                      key={donation.id}
+                      className="border-b text-black hover:bg-gray-50/70"
+                    >
                       <td className="p-3">{donation.name}</td>
                       <td className="p-3">{donation.email}</td>
                       <td className="p-3">
                         ₹
                         {(
-                          typeof donation.amount === "string"
+                          typeof donation.amount === 'string'
                             ? parseFloat(donation.amount)
                             : donation.amount
-                        ).toLocaleString("en-IN")}
+                        ).toLocaleString('en-IN')}
                       </td>
                       <td className="p-3">
                         {new Date(donation.created_at).toLocaleDateString()}
                       </td>
-                      <td className="p-3">{donation.ref_id || "—"}</td>
+                      <td className="p-3">{donation.ref_id || '—'}</td>
                       <td className="p-3">
                         {donation.screenshot ? (
                           <a
@@ -172,20 +193,22 @@ export default function AdminDashboard() {
                             View
                           </a>
                         ) : (
-                          "N/A"
+                          'N/A'
                         )}
                       </td>
                       <td className="p-3">
                         <button
                           className={`px-3 py-1 rounded text-white transition ${
-                            donation.status === "verified"
-                              ? "bg-green-600 hover:bg-green-700"
-                              : "bg-orange-500 hover:bg-orange-600"
+                            donation.status === 'verified'
+                              ? 'bg-green-600 hover:bg-green-700'
+                              : 'bg-orange-500 hover:bg-orange-600'
                           }`}
-                          onClick={() => updateStatus(donation.id, donation.status)}
+                          onClick={() =>
+                            updateStatus(donation.id, donation.status)
+                          }
                           title="Toggle status"
                         >
-                          {donation.status ?? "pending"}
+                          {donation.status ?? 'pending'}
                         </button>
                       </td>
                     </tr>

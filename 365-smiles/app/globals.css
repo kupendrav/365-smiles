@@ -61,5 +61,7 @@ video { max-width: 100%; height: auto; }
 /* Cards responsive shadow refinement */
 .card-gradient { background: linear-gradient(135deg, rgba(255,255,255,0.08), rgba(255,255,255,0.02)); backdrop-filter: blur(8px); }
 
-/* Smooth transitions for layout changes */
-* { transition: background-color .3s ease, color .3s ease; }
+/* Smooth transitions only for interactive elements (Issue #29) */
+a, button, input, select, textarea {
+  transition: background-color .2s ease, color .2s ease, border-color .2s ease, opacity .2s ease, transform .15s ease;
+}
